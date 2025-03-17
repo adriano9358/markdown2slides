@@ -14,9 +14,11 @@ repositories {
 }
 
 dependencies {
-    api(project(":services"))
-    // To use Spring MVC
-    implementation("org.springframework:spring-webmvc:6.1.13")
+    api(project(":repository"))
+    implementation("org.jdbi:jdbi3-core:3.37.1")
+    implementation("org.jdbi:jdbi3-kotlin:3.37.1")
+    implementation("org.jdbi:jdbi3-postgres:3.37.1")
+    implementation("org.postgresql:postgresql:42.7.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -26,7 +28,6 @@ kotlin {
         freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }
-
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
