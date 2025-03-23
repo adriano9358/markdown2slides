@@ -1,6 +1,5 @@
 package pt.isel.markdown2slides
 
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -11,19 +10,22 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import pt.isel.markdown2slides.model.CreateProjectDetailsDTO
-import pt.isel.markdown2slides.model.Problem
 import pt.isel.markdown2slides.model.UpdateProjectDetailsDTO
+import pt.isel.markdown2slides.utils.toProblem
+import java.util.*
+
+val defaultUUID = UUID.fromString("00000000-0000-0000-0000-000000000000")
 
 @RestController
 @RequestMapping("/projects")
-class ProjectInfoController(val projectService: ProjectInfoService) {
+class ProjectInfoController(val projectInfoService: ProjectInfoService) {
 
     @GetMapping
     fun listPersonalProjects(): ResponseEntity<Any> {
-        val projects = projectService.getPersonalProjects(1L)
+        val projects = projectInfoService.getPersonalProjects(defaultUUID)
         return when (projects) {
             is Success -> ResponseEntity.ok(projects.value)
-            is Failure -> Problem.ConversionProcessFailure.response(HttpStatus.SERVICE_UNAVAILABLE)
+            is Failure -> projects.value.toProblem().response()
         }
     }
 
@@ -32,44 +34,49 @@ class ProjectInfoController(val projectService: ProjectInfoService) {
         @RequestBody projectDetails: CreateProjectDetailsDTO,
     ): ResponseEntity<Any> {
         val visibility = if(projectDetails.visibility) Visibility.PRIVATE else Visibility.PUBLIC
-        val project = projectService.createProject(projectDetails.name, projectDetails.description, 1L, visibility)
+        val project = projectInfoService.createProject(projectDetails.name, projectDetails.description, defaultUUID, visibility)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response(HttpStatus.SERVICE_UNAVAILABLE)
+            is Failure -> project.value.toProblem().response()
         }
     }
 
     @GetMapping("/{id}")
     fun getProjectDetails(
-        @PathVariable projectId: Long,
+        @PathVariable projectId: UUID,
     ): ResponseEntity<Any> {
-        val project = projectService.getProjectDetails(projectId)
+        val project = projectInfoService.getProjectDetails(projectId)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response(HttpStatus.SERVICE_UNAVAILABLE)
+            is Failure -> project.value.toProblem().response()
         }
     }
 
     @PutMapping("/{id}")
     fun editProjectDetails(
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody projectDetails: UpdateProjectDetailsDTO,
     ): ResponseEntity<Any>{
-        val project = projectService.editProjectDetails(id, projectDetails.name, projectDetails.description, projectDetails.visibility)
+        val visibility = when(projectDetails.visibility) {
+            true -> Visibility.PRIVATE
+            false -> Visibility.PUBLIC
+            null -> null
+        }
+        val project = projectInfoService.editProjectDetails(id, projectDetails.name, projectDetails.description, visibility)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response(HttpStatus.SERVICE_UNAVAILABLE)
+            is Failure -> project.value.toProblem().response()
         }
     }
 
     @DeleteMapping("/{id}")
     fun deleteProject(
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
-        val project = projectService.deleteProject(id)
+        val project = projectInfoService.deleteProject(defaultUUID, id)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response(HttpStatus.SERVICE_UNAVAILABLE)
+            is Failure -> project.value.toProblem().response()
         }
     }
 

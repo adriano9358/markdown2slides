@@ -2,7 +2,7 @@ package pt.isel.markdown2slides
 
 import org.jdbi.v3.core.Handle
 
-
+/*
 class RepositoryProjectInfoJdbi(
     private val handle: Handle,
 ) : RepositoryProjectInfo {
@@ -35,4 +35,4 @@ class RepositoryProjectInfoJdbi(
         TODO("Not yet implemented")
     }
 
-}
+}*/

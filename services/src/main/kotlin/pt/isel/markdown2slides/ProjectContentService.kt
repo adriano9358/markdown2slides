@@ -1,18 +1,61 @@
 package pt.isel.markdown2slides
 
 import jakarta.inject.Named
+import java.util.*
 
 @Named
-class ProjectContentService(private val fileRepo: RepositoryProjectContent) {
+class ProjectContentService(
+    private val repoProjectContent: RepositoryProjectContent = RepositoryProjectContentFileSystem()
+) {
 
-    fun getProjectContent(id: Long): Either<ConversionError, String> {
-        val content = fileRepo.getMarkdown(id.toString()) ?: return failure(ConversionError.SomeConversionError)
+    fun updateProjectContent(
+        ownerId: UUID,
+        projectId: UUID,
+        markdown: String,
+    ): Either<ProjectError, Unit> {
+        val projectExists = repoProjectContent.checkProjectExists(ownerId, projectId)
+        if(!projectExists) return failure(ProjectError.ProjectNotFound)
+        repoProjectContent.saveMarkdown(ownerId, projectId, markdown)
+        return success(Unit)
+    }
+
+    fun getProjectContent(ownerId: UUID, projectId: UUID): Either<ProjectError, String> {
+        val content = repoProjectContent.getMarkdown(ownerId, projectId) ?: return failure(ProjectError.ProjectNotFound)
         return success(content)
     }
 
-    fun updateProjectContent(id: Long, markdown: String): Either<ConversionError, String> {
-        fileRepo.saveMarkdown(id.toString(), markdown)
-        return success(markdown)
+    fun uploadImage(
+        ownerId: UUID,
+        projectId: UUID,
+        imageName: String,
+        extension: String,
+        imageBytes: ByteArray
+    ): Either<ProjectError, Unit> {
+        val projectExists = repoProjectContent.checkProjectExists(ownerId, projectId)
+        if(!projectExists) return failure(ProjectError.ProjectNotFound)
+        repoProjectContent.saveImage(ownerId, projectId, imageName, extension, imageBytes)
+        return success(Unit)
+    }
+
+    fun deleteImage(
+        ownerId: UUID,
+        projectId: UUID,
+        imageName: String,
+        extension: String
+    ): Either<ProjectError, Unit> {
+        val deleted = repoProjectContent.deleteImage(ownerId, projectId, imageName, extension)
+        return if (deleted)  success(Unit)
+        else failure(ProjectError.ImageDeletionError)
+    }
+
+    fun getImage(
+        ownerId: UUID,
+        projectId: UUID,
+        imageName: String,
+        extension: String
+    ): Either<ProjectError, ByteArray> {
+        val image = repoProjectContent.getImage(ownerId, projectId, imageName, extension) ?: return failure(ProjectError.ImageNotFound)
+        return success(image)
     }
 
 }

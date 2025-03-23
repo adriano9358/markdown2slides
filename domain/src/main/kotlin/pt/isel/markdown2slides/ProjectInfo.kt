@@ -1,6 +1,7 @@
 package pt.isel.markdown2slides
 
 import java.time.Instant
+import java.util.*
 
 
 enum class Visibility {
@@ -14,10 +15,10 @@ data class SlideTheme(
 )
 
 data class ProjectInfo(
-    val id: Long,
+    val id: UUID,
     val name: String,
     val description: String,
-    val ownerId: Long,
+    val ownerId: UUID,
     val createdAt: Instant,
     val updatedAt: Instant,
     val theme: SlideTheme,

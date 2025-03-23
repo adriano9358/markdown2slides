@@ -26,7 +26,8 @@ class MarkdownConverterService {
             markdownFile.absolutePath
         )
 
-        return failure(ConversionError.SomeConversionError)//executePandoc(command, outputFile)
+        executePandoc(command, outputFile)
+        return success(outputFile.readText())
     }
 
     /*fun convertToPdfSlides(markdown: String): ByteArray {

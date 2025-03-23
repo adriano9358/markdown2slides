@@ -1,3 +1,5 @@
 package pt.isel.markdown2slides
 
-data class ProjectContent(val content: String)
+import java.util.UUID
+
+data class ProjectContent(val id: UUID, val content: String)
