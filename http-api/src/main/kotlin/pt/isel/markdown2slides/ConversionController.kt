@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*
 import pt.isel.markdown2slides.model.Problem
 import pt.isel.markdown2slides.utils.toProblem
 
-
+@CrossOrigin(origins = ["http://localhost:8000"])
 @RestController
 @RequestMapping("/convert")
 class ConversionController(private val converterService: MarkdownConverterService) {

@@ -12,14 +12,14 @@ class ProjectContentService(
         ownerId: UUID,
         projectId: UUID,
         markdown: String,
-    ): Either<ProjectError, Unit> {
+    ): Either<ProjectError, Unit> = handleErrors {
         val projectExists = repoProjectContent.checkProjectExists(ownerId, projectId)
         if(!projectExists) return failure(ProjectError.ProjectNotFound)
         repoProjectContent.saveMarkdown(ownerId, projectId, markdown)
         return success(Unit)
     }
 
-    fun getProjectContent(ownerId: UUID, projectId: UUID): Either<ProjectError, String> {
+    fun getProjectContent(ownerId: UUID, projectId: UUID): Either<ProjectError, String> = handleErrors {
         val content = repoProjectContent.getMarkdown(ownerId, projectId) ?: return failure(ProjectError.ProjectNotFound)
         return success(content)
     }
@@ -30,7 +30,7 @@ class ProjectContentService(
         imageName: String,
         extension: String,
         imageBytes: ByteArray
-    ): Either<ProjectError, Unit> {
+    ): Either<ProjectError, Unit> = handleErrors {
         val projectExists = repoProjectContent.checkProjectExists(ownerId, projectId)
         if(!projectExists) return failure(ProjectError.ProjectNotFound)
         repoProjectContent.saveImage(ownerId, projectId, imageName, extension, imageBytes)
@@ -42,7 +42,8 @@ class ProjectContentService(
         projectId: UUID,
         imageName: String,
         extension: String
-    ): Either<ProjectError, Unit> {
+    ): Either<ProjectError, Unit> = handleErrors {
+        repoProjectContent.getImage(ownerId, projectId, imageName, extension) ?: return failure(ProjectError.ImageNotFound)
         val deleted = repoProjectContent.deleteImage(ownerId, projectId, imageName, extension)
         return if (deleted)  success(Unit)
         else failure(ProjectError.ImageDeletionError)
@@ -53,7 +54,7 @@ class ProjectContentService(
         projectId: UUID,
         imageName: String,
         extension: String
-    ): Either<ProjectError, ByteArray> {
+    ): Either<ProjectError, ByteArray> = handleErrors {
         val image = repoProjectContent.getImage(ownerId, projectId, imageName, extension) ?: return failure(ProjectError.ImageNotFound)
         return success(image)
     }

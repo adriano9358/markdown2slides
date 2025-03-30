@@ -1,7 +1,9 @@
 package pt.isel.markdown2slides
 
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.File
+
 
 class MarkdownConverterServiceTests {
 
@@ -564,25 +566,66 @@ class MarkdownConverterServiceTests {
 
 
     """.trimIndent()
+    private lateinit var markdownConverterService: MarkdownConverterService
 
-
-    @Test
-    fun test1(){
-        val a = MarkdownConverterService()
-        val str = a.convertToHtmlSlides(markdown_sample)
-        println(str)
+    @BeforeEach
+    fun setup() {
+        markdownConverterService = MarkdownConverterService()
     }
-    @Test
-    fun test2(){
 
+    @Test
+    fun `convert markdown to html slides`() {
+        // Arrange
+        val projectId = 1L
+
+        // Act
+        val result = markdownConverterService.convertToHtmlSlides(markdown_sample, projectId)
+
+        // Assert
+        assertTrue(result is Either.Right)
+        assertTrue((result as Either.Right).value.isNotEmpty())
     }
-    @Test
-    fun test3(){
 
+    @Test
+    fun `convert markdown to html slides with invalid markdown`() {
+        // Arrange
+        val service = MarkdownConverterService()
+        val projectId = 1L
+
+        // Act
+        val result = service.convertToHtmlSlides("", projectId)
+
+        // Assert
+        assertTrue(result is Either.Left)
+        assertTrue((result as Either.Left).value is ConversionError.SomeConversionError)
     }
-    @Test
-    fun test4(){
 
+    @Test
+    fun `convert markdown to html slides with invalid project id`() {
+        // Arrange
+        val service = MarkdownConverterService()
+        val projectId = -1L
+
+        // Act
+        val result = service.convertToHtmlSlides(markdown_sample, projectId)
+
+        // Assert
+        assertTrue(result is Either.Left)
+        assertTrue((result as Either.Left).value is ConversionError.SomeConversionError)
+    }
+
+    @Test
+    fun `convert markdown to html slides with invalid markdown and project id`() {
+        // Arrange
+        val service = MarkdownConverterService()
+        val projectId = -1L
+
+        // Act
+        val result = service.convertToHtmlSlides("", projectId)
+
+        // Assert
+        assertTrue(result is Either.Left)
+        assertTrue((result as Either.Left).value is ConversionError.SomeConversionError)
     }
 
 }

@@ -5,11 +5,14 @@ import pt.isel.markdown2slides.ProjectError
 import pt.isel.markdown2slides.model.Problem
 
 fun ProjectError.toProblem(): Problem = when (this) {
-    ProjectError.SomeError -> Problem.ConversionProcessFailure
     ProjectError.ContentDeletionError -> TODO()
     ProjectError.ImageDeletionError -> TODO()
     ProjectError.ImageNotFound -> TODO()
     ProjectError.ProjectNotFound -> TODO()
+    ProjectError.ProjectNotAuthorized -> TODO()
+    is ProjectError.DatabaseError -> TODO()
+    is ProjectError.FileSystemError -> TODO()
+    is ProjectError.UnknownError -> TODO()
 }
 
 fun ConversionError.toProblem(): Problem = when (this) {

@@ -45,7 +45,7 @@ class ProjectInfoController(val projectInfoService: ProjectInfoService) {
     fun getProjectDetails(
         @PathVariable projectId: UUID,
     ): ResponseEntity<Any> {
-        val project = projectInfoService.getProjectDetails(projectId)
+        val project = projectInfoService.getProjectDetails(defaultUUID, projectId)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
             is Failure -> project.value.toProblem().response()
@@ -62,7 +62,7 @@ class ProjectInfoController(val projectInfoService: ProjectInfoService) {
             false -> Visibility.PUBLIC
             null -> null
         }
-        val project = projectInfoService.editProjectDetails(id, projectDetails.name, projectDetails.description, visibility)
+        val project = projectInfoService.editProjectDetails(defaultUUID, id, projectDetails.name, projectDetails.description, visibility)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
             is Failure -> project.value.toProblem().response()
