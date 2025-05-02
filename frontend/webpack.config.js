@@ -10,7 +10,15 @@ module.exports = {
   devtool: 'inline-source-map',
   devServer: {
     port: 8000,
-    static: './dist',  
+    historyApiFallback: true,
+    static: [
+      {
+        directory: path.join(__dirname, 'dist'), // Serve built files
+      },
+      {
+        directory: path.join(__dirname, 'public'), // Serve public assets
+      }
+    ],
     hot: true          
   },
   module: {
