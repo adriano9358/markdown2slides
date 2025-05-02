@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*
 import pt.isel.markdown2slides.model.Problem
 import java.util.*
 
+@CrossOrigin(origins = ["http://localhost:8000"])
 @RestController
 @RequestMapping("/projects/content")
 class ProjectContentController(private val projectContentService: ProjectContentService) {
