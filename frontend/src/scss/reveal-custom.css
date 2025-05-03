@@ -1,0 +1,9 @@
+.reveal {
+    font-size: 20pt;
+    line-height: 1.3em;
+}
+
+.reveal pre code {
+    font-size: 16pt;
+    line-height: 1.2em;
+}

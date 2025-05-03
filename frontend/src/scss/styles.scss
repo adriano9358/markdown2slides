@@ -1,0 +1,46 @@
+// Import all of Bootstrap's CSS
+@use "bootstrap/scss/bootstrap";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+
+/* Fix Reveal.js global styles leaking */
+.reveal-container {
+    background: #222; /* Dark background only for the slide preview */
+    padding: 1rem;
+}
+
+/* Ensure other pages are not affected */
+body {
+    background-color: white !important;
+}
+
+.gutter {
+    background-color: $gray-300; // Bootstrap variable for light gray
+    cursor: col-resize;
+    width: 8px;
+  
+    // Optional: add a hover effect for better UX
+    &:hover {
+      background-color: $gray-400;
+    }
+  }
+
+  .Split {
+    height: 100%;
+  }
+  .Split .gutter {
+    background-color: $gray-300;
+    cursor: col-resize;
+  }
+  
+/*
+  * {
+    outline: 1px solid red;
+  }
+*/
+
+  .slide-editor-container {
+    background-color: $gray-300;
+  }
+  

@@ -7,6 +7,7 @@ import { About } from './About';
 import { Contact } from './Contact';
 import { AuthProvider } from './AuthProvider';
 import { AuthRequire } from './AuthRequire';
+import MyProjects from './MyProjects';
 
 const router = createBrowserRouter([
   {
@@ -14,8 +15,24 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
-      { 
+      /*{ 
         path: "convert", 
+        element: (
+          <AuthRequire>
+            <MarkdownToSlides />
+          </AuthRequire>
+        ),
+      },*/
+      {
+        path: "projects",
+        element: (
+          <AuthRequire>
+            <MyProjects />
+          </AuthRequire>
+        ),
+      },
+      {
+        path: "projects/:projectId",
         element: (
           <AuthRequire>
             <MarkdownToSlides />
