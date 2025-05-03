@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import pt.isel.markdown2slides.model.Problem
 import pt.isel.markdown2slides.utils.toProblem
+import java.util.*
 
 @CrossOrigin(origins = ["http://localhost:8000"])
 @RestController
@@ -15,7 +16,7 @@ class ConversionController(private val converterService: MarkdownConverterServic
     fun convertProject(
         @RequestBody markdown: String,
     ):ResponseEntity<Any>{
-        val result = converterService.convertToHtmlSlides(markdown, 1L)
+        val result = converterService.convertToHtmlSlides(markdown.substring(8), UUID.randomUUID(), UUID.randomUUID())
         return when (result) {
             is Success -> ResponseEntity.ok(result.value)
             is Failure -> result.value.toProblem().response()

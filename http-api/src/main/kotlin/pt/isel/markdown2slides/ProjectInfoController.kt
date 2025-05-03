@@ -1,6 +1,9 @@
 package pt.isel.markdown2slides
 
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
+import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.web.bind.annotation.*
 import pt.isel.markdown2slides.model.CreateProjectDetailsDTO
 import pt.isel.markdown2slides.model.UpdateProjectDetailsDTO
@@ -15,8 +18,11 @@ val defaultUUID = UUID.fromString("00000000-0000-0000-0000-000000000000")
 class ProjectInfoController(val projectInfoService: ProjectInfoService) {
 
     @GetMapping
-    fun listPersonalProjects(): ResponseEntity<Any> {
-        val projects = projectInfoService.getPersonalProjects(defaultUUID)
+    fun listPersonalProjects(@AuthenticationPrincipal principal: OidcUser): ResponseEntity<Any> {
+        val uuid = principal.retrieveId() ?:
+            return ResponseEntity.badRequest().body("Invalid UUID format for userId")
+
+        val projects = projectInfoService.getPersonalProjects(uuid)
         return when (projects) {
             is Success -> ResponseEntity.ok(projects.value)
             is Failure -> projects.value.toProblem().response()
@@ -25,10 +31,13 @@ class ProjectInfoController(val projectInfoService: ProjectInfoService) {
 
     @PostMapping
     fun createProject(
+        @AuthenticationPrincipal principal: OAuth2User,
         @RequestBody projectDetails: CreateProjectDetailsDTO,
     ): ResponseEntity<Any> {
+        val uuid = principal.retrieveId() ?:
+            return ResponseEntity.badRequest().body("Invalid UUID format for userId")
         val visibility = if(projectDetails.visibility) Visibility.PRIVATE else Visibility.PUBLIC
-        val project = projectInfoService.createProject(projectDetails.name, projectDetails.description, defaultUUID, visibility)
+        val project = projectInfoService.createProject(projectDetails.name, projectDetails.description, uuid, visibility)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
             is Failure -> project.value.toProblem().response()
@@ -74,4 +83,15 @@ class ProjectInfoController(val projectInfoService: ProjectInfoService) {
         }
     }
 
+}
+
+
+fun OAuth2User.retrieveId(): UUID? {
+    return this.getAttribute<String>("userId")?.let { userId ->
+        try {
+            UUID.fromString(userId)
+        } catch (ex: IllegalArgumentException) {
+            null
+        }
+    }
 }

@@ -3,6 +3,7 @@ package pt.isel.markdown2slides
 import jakarta.inject.Named
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 const val FILE_PREFIX = "slides"
 const val INPUT_FILE_FORMAT = ".md"
@@ -12,7 +13,7 @@ const val DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000000"
 @Named
 class MarkdownConverterService {
 
-    fun convertToHtmlSlides(markdown: String, projectId: Long = 1L): Either<ConversionError, String> {
+    fun convertToHtmlSlides(markdown: String, userId: UUID, projectId: UUID): Either<ConversionError, String> {
         val markdownFile = File.createTempFile(FILE_PREFIX + projectId, INPUT_FILE_FORMAT).apply {
             writeText(markdown)
         }

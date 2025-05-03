@@ -15,7 +15,7 @@ const val MAX_SESSIONS_PREVENTS_LOGIN = false // false -> invalidate oldest
 
 
 @Configuration
-class SecurityConfig {
+class SecurityConfig(private val customOAuth2UserService: CustomOAuth2UserService){
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -32,6 +32,9 @@ class SecurityConfig {
                     //.anyRequest().permitAll()
             }
             .oauth2Login { login ->
+                login.userInfoEndpoint{
+                    it.oidcUserService(customOAuth2UserService)
+                }
                 login.defaultSuccessUrl("http://localhost:8000/", true)
             }
             .logout { logout ->

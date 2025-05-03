@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     api(project(":services"))
+    implementation("org.slf4j:slf4j-api:2.0.17")
     // To use Spring MVC
     implementation("org.springframework:spring-webmvc:6.1.13")
     implementation("org.springframework.security:spring-security-oauth2-client:6.4.3")

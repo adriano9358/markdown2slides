@@ -2,6 +2,8 @@ package pt.isel.markdown2slides
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.*
 import pt.isel.markdown2slides.model.Problem
 import java.util.*
@@ -13,9 +15,12 @@ class ProjectContentController(private val projectContentService: ProjectContent
 
     @GetMapping("/{id}")
     fun getProjectContent(
+        @AuthenticationPrincipal principal: OidcUser,
         @PathVariable id: UUID,
     ): ResponseEntity<Any> {
-        val project = projectContentService.getProjectContent(defaultUUID,id)
+        val uuid = principal.retrieveId() ?:
+            return ResponseEntity.badRequest().body("Invalid UUID format for userId")
+        val project = projectContentService.getProjectContent(uuid,id)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
             is Failure -> Problem.ConversionProcessFailure.response()
