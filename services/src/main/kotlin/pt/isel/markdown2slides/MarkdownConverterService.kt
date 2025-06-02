@@ -8,7 +8,7 @@ import java.util.*
 const val FILE_PREFIX = "slides"
 const val INPUT_FILE_FORMAT = ".md"
 const val OUTPUT_FILE_FORMAT = ".html"
-const val DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000000"
+const val DEFAULT_USER_ID = "3a427d49-0e7c-46d4-95c0-18ca6b34aa48"
 
 @Named
 class MarkdownConverterService {

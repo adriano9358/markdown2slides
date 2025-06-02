@@ -8,7 +8,7 @@ import java.util.*
 
 @Named
 class ProjectInfoService(
-    private val trxManager: TransactionManager = TransactionManagerInMem(),
+    private val trxManager: TransactionManager /*= TransactionManagerInMem()*/,
     private val repoProjectContent: RepositoryProjectContent = RepositoryProjectContentFileSystem(),
 ) {
 

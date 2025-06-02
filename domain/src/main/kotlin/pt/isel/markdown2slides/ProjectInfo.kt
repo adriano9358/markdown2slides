@@ -21,6 +21,6 @@ data class ProjectInfo(
     val ownerId: UUID,
     val createdAt: Instant,
     val updatedAt: Instant,
-    val theme: SlideTheme,
+    val theme: String,
     val visibility: Visibility,
 )

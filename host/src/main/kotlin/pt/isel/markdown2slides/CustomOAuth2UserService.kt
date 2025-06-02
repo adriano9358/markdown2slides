@@ -25,7 +25,8 @@ private val logger: Logger = LoggerFactory.getLogger(CustomOAuth2UserService::cl
 
 @Component
 class CustomOAuth2UserService(
-    private val userRepository: RepositoryUserInMem
+    private val trxManager: TransactionManager,
+    //private val userRepository: RepositoryUser
 ) :OAuth2UserService<OidcUserRequest, OidcUser> {
 
     init {
@@ -79,38 +80,39 @@ class CustomOAuth2UserService(
 
         logger.info("OIDC User email: $email")
         logger.info("OIDC User name: $name")
+        return trxManager.run {
+            val user = repoUser.findByEmail(email)
+            val mappedUser = if (user != null) {
+                logger.info("User found in repository: ${user.id}")
+                user
+            } else {
+                logger.info("User not found in repository, creating new user")
+                val newUser = User(
+                    id = UUID.randomUUID(),
+                    name = name,
+                    email = email
+                )
+                repoUser.save(newUser)
+                newUser
+            }
 
-        val user = userRepository.findByEmail(email)
-        val mappedUser = if (user != null) {
-            logger.info("User found in repository: ${user.id}")
-            user
-        } else {
-            logger.info("User not found in repository, creating new user")
-            val newUser = User(
-                id = UUID.randomUUID(),
-                name = name,
-                email = email
+            val authorities = setOf(SimpleGrantedAuthority("ROLE_USER"))
+
+            val customAttributes = mutableMapOf<String, Any>(
+                "userId" to mappedUser.id.toString(),
+                "email" to mappedUser.email,
+                "name" to mappedUser.name
             )
-            userRepository.save(newUser)
-            newUser
-        }
 
-        val authorities = setOf(SimpleGrantedAuthority("ROLE_USER"))
-
-        val customAttributes = mutableMapOf<String, Any>(
-            "userId" to mappedUser.id.toString(),
-            "email" to mappedUser.email,
-            "name" to mappedUser.name
-        )
-
-        return DefaultOidcUser(
-            authorities,
-            oidcUser.idToken,
-            oidcUser.userInfo,
-            "email"
-        ).let {
-            object : OidcUser by it {
-                override fun getAttributes(): Map<String, Any> = customAttributes
+            return@run DefaultOidcUser(
+                authorities,
+                oidcUser.idToken,
+                oidcUser.userInfo,
+                "email"
+            ).let {
+                object : OidcUser by it {
+                    override fun getAttributes(): Map<String, Any> = customAttributes
+                }
             }
         }
     }

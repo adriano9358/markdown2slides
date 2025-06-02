@@ -19,6 +19,10 @@ repositories {
 dependencies {
     // Module dependencies
     implementation(project(":http-api"))
+    implementation(project(":repository-jdbi"))
+
+    implementation("org.jdbi:jdbi3-core:3.37.1")
+    implementation("org.postgresql:postgresql:42.7.2")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

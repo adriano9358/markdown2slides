@@ -1,7 +1,7 @@
 package pt.isel.markdown2slides
 
 import org.jdbi.v3.core.Handle
-/*
+
 class TransactionJdbi(
     private val handle: Handle,
 ) : Transaction {
@@ -11,4 +11,4 @@ class TransactionJdbi(
     override fun rollback() {
         handle.rollback()
     }
-}*/
+}

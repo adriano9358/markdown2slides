@@ -182,7 +182,7 @@ const MarkdownToSlides = () => {
     
             if (!response.ok) throw new Error("Image upload failed");
     
-            const imageUrl = `http://localhost:8080/projects/content/e7453f29-a228-4cc1-89c4-d25ad8eb95ed/images/${imageName}.${extension}`;
+            const imageUrl = `http://localhost:8080/projects/content/3a427d49-0e7c-46d4-95c0-18ca6b34aa48/images/${imageName}.${extension}`;
             insertMarkdownSyntax("image", imageUrl);
         } catch (error) {
             console.error("Error uploading image:", error);

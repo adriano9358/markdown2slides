@@ -60,7 +60,7 @@ class ProjectContentController(private val projectContentService: ProjectContent
         @PathVariable imageName: String,
         @PathVariable extension: String
     ): ResponseEntity<Any> {
-        val project = projectContentService.getImage(defaultUUID, id, imageName, extension)
+        val project = projectContentService.getImage(defaultUUID, UUID.fromString("798904c5-6c70-4d5d-885a-6ce2b254be3c"), imageName, extension)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
             is Failure -> Problem.ConversionProcessFailure.response()

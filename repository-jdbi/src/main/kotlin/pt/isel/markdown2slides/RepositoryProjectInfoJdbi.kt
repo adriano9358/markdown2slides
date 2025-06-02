@@ -1,38 +1,88 @@
 package pt.isel.markdown2slides
 
 import org.jdbi.v3.core.Handle
+import java.time.Instant
+import java.util.*
 
-/*
+
 class RepositoryProjectInfoJdbi(
     private val handle: Handle,
 ) : RepositoryProjectInfo {
+    override fun createProject(name: String, description: String, ownerId: UUID, visibility: Visibility): ProjectInfo {
+        val id = UUID.randomUUID()
+        handle.createUpdate(
+            """
+            INSERT INTO m2s.project_info(id, name, description, owner_id, created_at, updated_at, visibility)
+            VALUES (:id, :name, :description, :ownerId, NOW(), NOW(), :visibility)
+            """.trimIndent()
+        )
+            .bind("id", id)
+            .bind("name", name)
+            .bind("description", description)
+            .bind("ownerId", ownerId)
+            .bind("visibility", visibility.toString())
+            .execute()
 
-    override fun createProject(name: String, description: String, ownerId: Long, visibility: Visibility): ProjectInfo {
-        TODO("Not yet implemented")
+        return ProjectInfo(id, name, description, ownerId, Instant.now(), Instant.now(), "white", visibility)
     }
 
-    override fun getPersonalProjects(ownerId: Long): List<ProjectInfo> {
-        TODO("Not yet implemented")
+    override fun getPersonalProjects(ownerId: UUID): List<ProjectInfo> {
+        return handle
+            .createQuery("SELECT * FROM m2s.project_info WHERE owner_id = :ownerId")
+            .bind("ownerId", ownerId)
+            .mapTo(ProjectInfo::class.java)
+            .list()
     }
 
-    override fun findById(id: Int): ProjectInfo? {
-        TODO("Not yet implemented")
-    }
+    override fun findById(id: UUID): ProjectInfo? =
+        handle
+            .createQuery("SELECT * FROM m2s.project_info WHERE id = :id")
+            .bind("id", id)
+            .mapTo(ProjectInfo::class.java)
+            .findOne()
+            .orElse(null)
 
     override fun findAll(): List<ProjectInfo> {
-        TODO("Not yet implemented")
+        return handle
+            .createQuery("SELECT * FROM m2s.project_info")
+            .mapTo(ProjectInfo::class.java)
+            .list()
     }
 
     override fun save(entity: ProjectInfo) {
-        TODO("Not yet implemented")
+        handle.createUpdate(
+            """
+            UPDATE m2s.project_info
+            SET name = :name, description = :description, updated_at = NOW(), visibility = :visibility
+            WHERE id = :id
+            """.trimIndent()
+        )
+            .bind("id", entity.id)
+            .bind("name", entity.name)
+            .bind("description", entity.description)
+            .bind("visibility", entity.visibility.toString())
+            .execute()
     }
 
-    override fun deleteById(id: Int) {
-        TODO("Not yet implemented")
+    override fun deleteById(id: UUID) {
+        handle.createUpdate(
+            """
+            DELETE FROM m2s.project_info
+            WHERE id = :id
+            """.trimIndent()
+        )
+            .bind("id", id)
+            .execute()
     }
 
     override fun clear() {
-        TODO("Not yet implemented")
+        handle.createUpdate(
+            """
+            DELETE FROM m2s.project_info
+            """.trimIndent()
+        )
+            .execute()
     }
 
-}*/
+
+}

@@ -14,7 +14,7 @@ class RepositoryProjectInfoInMem: RepositoryProjectInfo{
     private val projects = mutableListOf<ProjectInfo>()
 
     override fun createProject(name: String, description: String, ownerId: UUID, visibility: Visibility): ProjectInfo =
-        ProjectInfo(UUID.randomUUID(), name, description, ownerId, Instant.now(), Instant.now(), SlideTheme(), visibility)
+        ProjectInfo(UUID.randomUUID(), name, description, ownerId, Instant.now(), Instant.now(), "white", visibility)
             .also { projects.add(it) }
 
 

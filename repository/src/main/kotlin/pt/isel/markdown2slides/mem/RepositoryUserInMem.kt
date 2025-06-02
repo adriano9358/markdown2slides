@@ -13,7 +13,7 @@ class RepositoryUserInMem: RepositoryUser {
         return users[id]
     }
 
-    fun findByEmail(email: String): User? {
+    override fun findByEmail(email: String): User? {
         return users.values.find { it.email == email }
     }
 
