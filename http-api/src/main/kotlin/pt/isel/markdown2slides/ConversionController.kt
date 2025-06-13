@@ -15,8 +15,9 @@ class ConversionController(private val converterService: MarkdownConverterServic
     @PostMapping
     fun convertProject(
         @RequestBody markdown: String,
+        @RequestParam(required = false, defaultValue = "false") standalone: Boolean
     ):ResponseEntity<Any>{
-        val result = converterService.convertToHtmlSlides(markdown.substring(8), UUID.randomUUID(), UUID.randomUUID())
+        val result = converterService.convertToHtmlSlides(markdown.substring(8), UUID.randomUUID(), UUID.randomUUID(), standalone)
         return when (result) {
             is Success -> ResponseEntity.ok(result.value)
             is Failure -> result.value.toProblem().response()

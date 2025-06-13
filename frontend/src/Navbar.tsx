@@ -15,8 +15,11 @@ export const Navbar = () => {
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div className="container">
-        <Link className="navbar-brand" to="/">Markdown Slides</Link>
+      <div className="container-fluid">
+      <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
+        <img src="/logo.png" alt="Logo" height="30" />
+        markdown2slides
+      </Link>
         <div className="navbar-nav me-auto">
           <Link className="nav-link" to="/">Home</Link>
           <Link className="nav-link" to="/projects">My Projects</Link>

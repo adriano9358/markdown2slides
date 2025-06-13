@@ -202,61 +202,6 @@ const MarkdownToSlides = () => {
         applyTheme(theme);
     }, [theme]);
     
-    useEffect(() => {
-        const style = document.createElement("style");
-        /*style.innerHTML = `
-            .reveal {
-                font-size: 10pt !important;
-                line-height: 1.3em !important;
-            }
-    
-            .reveal pre code {
-                font-size: 16pt !important;
-                line-height: 1.2em !important;
-            }
-
-            .reveal section {
-                position: relative; 
-            }
-
-            .reveal img[alt="isel_logo"] {
-                width: 200px;
-                position: absolute;
-                top: 0px; 
-                left: 0px;
-            }
-        `;*/
-        style.innerHTML = `
-        
-        .slides {
-            font-size: 0.75em;
-        }
-        .reveal ul {
-            display: block;
-        }
-        .reveal ol {
-            display: block;
-        }
-        
-        img {
-            max-height: 350px !important;
-        }
-        
-        figcaption {
-            font-size: 0.6em !important;
-            font-style: italic !important;
-        }
-        
-        .subtitle {
-            font-style: italic !important;
-        }
-        
-        .date {
-            font-size: 0.75em !important;
-        }
-        `;
-        document.head.appendChild(style);
-    }, []);
     
 
     useEffect(() => {
@@ -301,6 +246,13 @@ const MarkdownToSlides = () => {
                             Convert Markdown
                         </button>
                     )}
+
+                    <button
+                        className="btn btn-sm btn-outline-success"
+                        onClick={() => window.open(`/projects/${projectId}/print?print-pdf`, "_blank")}
+                    >
+                        Export / Print Slides
+                    </button>
 
                     <div className="form-check form-switch m-0 d-flex align-items-center">
                         <input

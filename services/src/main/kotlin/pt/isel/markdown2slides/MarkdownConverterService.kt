@@ -13,7 +13,7 @@ const val DEFAULT_USER_ID = "3a427d49-0e7c-46d4-95c0-18ca6b34aa48"
 @Named
 class MarkdownConverterService {
 
-    fun convertToHtmlSlides(markdown: String, userId: UUID, projectId: UUID): Either<ConversionError, String> {
+    fun convertToHtmlSlides(markdown: String, userId: UUID, projectId: UUID, s:Boolean = false): Either<ConversionError, String> {
         val markdownFile = File.createTempFile(FILE_PREFIX + projectId, INPUT_FILE_FORMAT).apply {
             writeText(markdown)
         }
@@ -25,15 +25,22 @@ class MarkdownConverterService {
 
         val fullCommand = "pandoc -t revealjs --standalone -V revealjs-url=https://unpkg.com/reveal.js@^4 theme=serif -o ./Output.html ./test.md"
 
-        val command = listOf(
+        val command = mutableListOf(
             "pandoc",
-            "-t", "revealjs",
-            //"--standalone",
-            "-V revealjs-url=https://unpkg.com/reveal.js@^4 -V theme=serif",
-            //"-V theme=moon",
-            "-o", outputFile.absolutePath,
-            markdownFile.absolutePath,
+            "-t", "revealjs"
+        )
 
+        if (s) {
+            command.add("--standalone")
+        }
+
+        command.addAll(
+            listOf(
+                "-V", "revealjs-url=https://unpkg.com/reveal.js@^4",
+                "-V", "theme=serif",
+                "-o", outputFile.absolutePath,
+                markdownFile.absolutePath
+            )
         )
 
         return executePandoc(command, outputFile)

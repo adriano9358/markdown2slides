@@ -2,12 +2,14 @@ import './scss/styles.scss'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Layout } from './Layout';
 import { Home } from './Home';
-import MarkdownToSlides from './MarkdownToSlides';
+//import MarkdownToSlides from './MarkdownToSlides';
+import MarkdownToSlides from './M2S_index';
 import { About } from './About';
 import { Contact } from './Contact';
 import { AuthProvider } from './AuthProvider';
 import { AuthRequire } from './AuthRequire';
 import MyProjects from './MyProjects';
+import PrintSlides from './PrintsSlides';
 
 const router = createBrowserRouter([
   {
@@ -36,6 +38,14 @@ const router = createBrowserRouter([
         element: (
           <AuthRequire>
             <MarkdownToSlides />
+          </AuthRequire>
+        ),
+      },
+      {
+        path: "projects/:projectId/print",
+        element: (
+          <AuthRequire>
+            <PrintSlides />
           </AuthRequire>
         ),
       },
