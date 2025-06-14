@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 export function Home() {
   return (
     <div className="container py-5 text-center">
-      <h1 className="display-4 mb-4">Welcome to Markdown Slides</h1>
+      <h1 className="display-4 mb-4">Welcome to markdown2slides</h1>
       <p className="lead mb-4">
         Turn your Markdown notes into professional presentation slides right in your browser.
       </p>

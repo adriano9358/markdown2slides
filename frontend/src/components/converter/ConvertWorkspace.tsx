@@ -1,13 +1,12 @@
 // File: components/MarkdownToSlides/index.tsx
 import { useParams } from "react-router-dom";
-import { useMarkdownToSlides } from "./useMarkdownToSlides";
+import { useMarkdownToSlides } from "../../hooks/useMarkdownToSlides";
 import { SlideEditorToolbar } from "./SlideEditorToolbar";
 import { SlidePreview } from "./SlidePreview";
 import { MarkdownEditor } from "./MarkdownEditor";
 import Split from "react-split";
-import LoadingOverlay from "./LoadingOverlay";
 
-const MarkdownToSlides = () => {
+const ConvertWorkspace = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const editor = useMarkdownToSlides(projectId);
 
@@ -37,4 +36,4 @@ const MarkdownToSlides = () => {
   );
 };
 
-export default MarkdownToSlides;
+export default ConvertWorkspace;

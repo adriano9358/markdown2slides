@@ -1,6 +1,6 @@
 // File: components/MarkdownToSlides/SlidePreview.tsx
 import React from "react";
-import LoadingOverlay from "./LoadingOverlay";
+import SlidesLoadingOverlay from "./SlidesLoadingOverlay";
 
 interface SlidePreviewProps {
   slideContent: string;
@@ -19,7 +19,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slideContent, loadin
           />
         )}
       </div>
-      {loading && <LoadingOverlay />}
+      {loading && <SlidesLoadingOverlay />}
     </div>
   );
 };

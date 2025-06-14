@@ -1,15 +1,15 @@
 import './scss/styles.scss'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { Layout } from './Layout';
-import { Home } from './Home';
+import { Layout } from './components/layout/Layout';
+import { Home } from './pages/Home';
 //import MarkdownToSlides from './MarkdownToSlides';
-import MarkdownToSlides from './M2S_index';
-import { About } from './About';
-import { Contact } from './Contact';
-import { AuthProvider } from './AuthProvider';
-import { AuthRequire } from './AuthRequire';
-import MyProjects from './MyProjects';
-import PrintSlides from './PrintsSlides';
+import ConvertWorkspace from './components/converter/ConvertWorkspace';
+import { About } from './pages/About';
+import { Contact } from './pages/Contact';
+import { AuthProvider } from './providers/AuthProvider';
+import { AuthRequire } from './auth/AuthRequire';
+import MyProjects from './pages/MyProjects';
+import PrintSlides from './pages/PrintsSlides';
 
 const router = createBrowserRouter([
   {
@@ -17,14 +17,6 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
-      /*{ 
-        path: "convert", 
-        element: (
-          <AuthRequire>
-            <MarkdownToSlides />
-          </AuthRequire>
-        ),
-      },*/
       {
         path: "projects",
         element: (
@@ -37,7 +29,7 @@ const router = createBrowserRouter([
         path: "projects/:projectId",
         element: (
           <AuthRequire>
-            <MarkdownToSlides />
+            <ConvertWorkspace />
           </AuthRequire>
         ),
       },

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { AuthContext } from "./AuthProvider"
+import { AuthContext } from "../providers/AuthProvider"
 import { Navigate, useLocation } from "react-router-dom"
 
 export function AuthRequire({ children }: { children: React.ReactNode }) {

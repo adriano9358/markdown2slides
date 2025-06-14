@@ -1,8 +1,8 @@
 // File: pages/MyProjects.tsx
 import React, { useEffect, useState, useContext } from "react";
-import { AuthContext } from "./AuthProvider";
-import { ProjectList, ProjectMetadata } from "./ProjectList";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { AuthContext } from "../providers/AuthProvider";
+import { ProjectList, ProjectMetadata } from "../components/projectManager/ProjectList";
+import { LoadingSpinner } from "../components/common/LoadingSpinner";
 
 export default function MyProjects() {
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
