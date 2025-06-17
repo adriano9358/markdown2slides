@@ -7,6 +7,8 @@ class TransactionJdbi(
 ) : Transaction {
     override val repoProjectInfo = RepositoryProjectInfoJdbi(handle)
     override val repoUser = RepositoryUserJdbi(handle)
+    override val repoCollaborators = RepositoryCollaboratorsJdbi(handle)
+    override val repoInvitations = RepositoryInvitationsJdbi(handle)
 
     override fun rollback() {
         handle.rollback()

@@ -9,7 +9,7 @@ export default function MyProjects() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [projectName, setProjectName] = useState("");
-  const { username } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     fetchProjects();

@@ -20,6 +20,7 @@ class ProjectInfoService(
     ): Either<ProjectError, ProjectInfo> = trxManager.run {
         val project = repoProjectInfo.createProject(name, description, ownerId, visibility)
         repoProjectContent.createProject(ownerId, project.id)
+        repoCollaborators.addCollaborator(project.id, ownerId, ProjectRole.ADMIN)
         success(project)
     }
 
@@ -81,6 +82,17 @@ sealed class ProjectError {
     data object ProjectNotAuthorized : ProjectError()
     data object ImageDeletionError : ProjectError()
     data object ImageNotFound : ProjectError()
+    data object InvalidRole : ProjectError()
+    data object InviterNotFound : ProjectError()
+    data object InvitationNotFound : ProjectError()
+    data object UserNotFound : ProjectError()
+    data object InvitationAlreadyExists : ProjectError()
+    data object InviterNotAuthorized : ProjectError()
+    data object InvitationAlreadyResponded : ProjectError()
+    data object UserAlreadyInProject : ProjectError()
+    data object InvalidInvitationResponse : ProjectError()
+    data object UserNotInProject : ProjectError()
+
     data class DatabaseError(val message: String) : ProjectError()
     data class FileSystemError(val message: String) : ProjectError()
     data class UnknownError(val message: String) : ProjectError()

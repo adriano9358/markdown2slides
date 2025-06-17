@@ -10,6 +10,10 @@ import { AuthProvider } from './providers/AuthProvider';
 import { AuthRequire } from './auth/AuthRequire';
 import MyProjects from './pages/MyProjects';
 import PrintSlides from './pages/PrintsSlides';
+import ProjectTestPanel from './ProjectTestPanel';
+import { Login } from './pages/Login';
+import CollaboratorsPage from './components/converter/CollaboratorsPage';
+import InvitationsPage from './components/invitations/InvitationsPage';
 
 const router = createBrowserRouter([
   {
@@ -17,6 +21,14 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
+      {
+        path: "projects/test",
+        element: (
+          <AuthRequire>
+            <ProjectTestPanel />
+          </AuthRequire>
+        ),
+      },
       {
         path: "projects",
         element: (
@@ -41,18 +53,27 @@ const router = createBrowserRouter([
           </AuthRequire>
         ),
       },
+      {
+        path: "projects/:projectId/collaborators",
+        element: (
+          <AuthRequire>
+            <CollaboratorsPage />
+          </AuthRequire>
+        ),
+      },
+      {
+        path: "invitations",
+        element: (
+          <AuthRequire>
+            <InvitationsPage />
+          </AuthRequire>
+        ),
+      },
       { path: "about", element: <About /> },
       { path: "contact", element: <Contact /> },
       {
         path: "login",
-        element: (
-          <div>
-            <h2>Login Required</h2>
-            <a href="http://localhost:8080/oauth2/authorization/google" className="btn btn-primary">
-              Login with Google
-            </a>
-          </div>
-        ),
+        element: <Login />,
       }
     ],
   },

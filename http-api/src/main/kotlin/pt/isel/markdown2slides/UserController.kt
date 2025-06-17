@@ -18,8 +18,9 @@ class UserController {
         return if (principal == null) {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         } else {
-            ResponseEntity.ok(
+            return ResponseEntity.ok(
                 mapOf(
+                    "id" to (principal.attributes["userId"] ?: ""),
                     "name" to (principal.attributes["name"] ?: ""),
                     "email" to (principal.attributes["email"] ?: "")
                 )

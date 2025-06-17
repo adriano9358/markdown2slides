@@ -1,5 +1,6 @@
 // File: components/MarkdownToSlides/SlideEditorToolbar.tsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ToolbarProps {
   toggleFullscreen: () => void;
@@ -20,6 +21,8 @@ export const SlideEditorToolbar = ({
   theme,
   contentId,
 }: ToolbarProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="slide-toolbar d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
       {/* Left buttons group */}
@@ -55,7 +58,7 @@ export const SlideEditorToolbar = ({
 
       {/* Right controls */}
       <div className="d-flex gap-3 align-items-center flex-wrap">
-        <div className="form-check form-switch m-0 d-flex align-items-center">
+        {/*<div className="form-check form-switch m-0 d-flex align-items-center">
           <input
             className="form-check-input"
             type="checkbox"
@@ -70,7 +73,7 @@ export const SlideEditorToolbar = ({
           >
             Auto Convert
           </label>
-        </div>
+      </div>*/}
 
         <select
           className="form-select form-select-sm w-auto"
@@ -90,6 +93,14 @@ export const SlideEditorToolbar = ({
           <option value="sky">Sky</option>
           <option value="blood">Blood</option>
         </select>
+
+        {/* Collaborators button */}
+        <button
+          className="btn btn-sm btn-outline-dark"
+          onClick={() => navigate(`/projects/${contentId}/collaborators`)}
+        >
+          Manage Collaborators
+        </button>
       </div>
     </div>
   );

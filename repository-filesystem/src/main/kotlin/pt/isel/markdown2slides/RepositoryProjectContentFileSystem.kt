@@ -6,7 +6,7 @@ import java.nio.file.Path
 import java.util.UUID
 
 const val BASE_FILE_DIR = "./data"
-const val MARKDOWN_FILE_INIT_CONTENT = ""
+const val MARKDOWN_FILE_INIT_CONTENT = "# Slide 1\n\nThis is an example slide. To create another slide, add a new line with `---` followed by the slide content, like this:\n\n---\n\n# Slide 2\n\nThis is the second slide. You can add as many slides as you want by repeating the `---` pattern."
 
 @Named
 class RepositoryProjectContentFileSystem(private val baseDir: String = BASE_FILE_DIR): RepositoryProjectContent {

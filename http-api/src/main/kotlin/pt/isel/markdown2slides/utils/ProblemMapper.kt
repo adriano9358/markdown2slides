@@ -13,6 +13,7 @@ fun ProjectError.toProblem(): Problem = when (this) {
     is ProjectError.DatabaseError -> TODO()
     is ProjectError.FileSystemError -> TODO()
     is ProjectError.UnknownError -> TODO()
+    else -> TODO()
 }
 
 fun ConversionError.toProblem(): Problem = when (this) {

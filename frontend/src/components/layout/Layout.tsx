@@ -11,9 +11,9 @@ export function Layout() {
   return isPrintPage ? (
     <Outlet />
   ) :(
-    <div className="d-flex flex-column vh-100 bg-danger-subtle">
+    <div className="d-flex flex-column vh-100">
       <Navbar />
-      <div className="flex-grow-1 d-flex flex-column overflow-hidden">
+      <div className="flex-grow-1 overflow-auto bg-body-tertiary">
         <Outlet />
       </div>
     </div>

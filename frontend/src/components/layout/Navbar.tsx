@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../providers/AuthProvider";
+import { InvitationBell } from "../invitations/InvitationBell";
 
 export const Navbar = () => {
-  const { username } = useContext(AuthContext);
-
+  const { user } = useContext(AuthContext);
+  
   const handleLogout = async () => {
     await fetch("http://localhost:8080/logout", {
       method: "GET",
@@ -27,20 +28,22 @@ export const Navbar = () => {
           <Link className="nav-link" to="/contact">Contact</Link>
         </div>
 
-        <div className="navbar-text">
-          {username ? (
-            <>
-              <span className="me-2">Hello, {username}</span>
-              <button className="btn btn-sm btn-outline-light" onClick={handleLogout}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <a className="btn btn-sm btn-light" href="http://localhost:8080/oauth2/authorization/google">
-              Login with Google
-            </a>
-          )}
-        </div>
+        <div className="navbar-text d-flex align-items-center gap-3">
+  {user ? (
+    <>
+      <InvitationBell />
+
+      <span className="me-2">Hello, {user.name}</span>
+      <button className="btn btn-sm btn-outline-light" onClick={handleLogout}>
+        Logout
+      </button>
+    </>
+  ) : (
+    <a className="btn btn-sm btn-light" href="http://localhost:8080/oauth2/authorization/google">
+      Login with Google
+    </a>
+  )}
+</div>
       </div>
     </nav>
   );

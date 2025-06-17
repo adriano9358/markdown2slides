@@ -40,16 +40,6 @@ class SecurityConfig(private val customOAuth2UserService: CustomOAuth2UserServic
             .logout { logout ->
                 logout.logoutSuccessHandler { request, response, authentication ->
                     request.session.invalidate()
-
-                    /* SHOULD I DO THIS
-                    val cookie = Cookie("JSESSIONID", "")
-                    cookie.path = "/"
-                    cookie.maxAge = 0
-                    cookie.isHttpOnly = true
-                    cookie.secure = false
-                    response.addCookie(cookie)
-                    */
-
                     response.status = HttpServletResponse.SC_OK
                 }
             }

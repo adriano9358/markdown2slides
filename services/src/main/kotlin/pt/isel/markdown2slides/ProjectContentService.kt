@@ -5,6 +5,7 @@ import java.util.*
 
 @Named
 class ProjectContentService(
+    private val trxManager: TransactionManager,
     private val repoProjectContent: RepositoryProjectContent = RepositoryProjectContentFileSystem()
 ) {
 
@@ -19,9 +20,32 @@ class ProjectContentService(
         return success(Unit)
     }
 
-    fun getProjectContent(ownerId: UUID, projectId: UUID): Either<ProjectError, String> = handleErrors {
-        val content = repoProjectContent.getMarkdown(ownerId, projectId) ?: return failure(ProjectError.ProjectNotFound)
-        return success(content)
+    fun getProjectContent(userId: UUID, projectId: UUID): Either<ProjectError, String> = handleErrors {
+        return when(val ownerId = isOwnerOrCollaborator(userId, projectId)) {
+            is Failure -> failure(ProjectError.UserNotInProject)
+            is Success -> {
+                val content = repoProjectContent.getMarkdown(ownerId.value, projectId)
+                    ?: return failure(ProjectError.ProjectNotFound)
+                success(content)
+            }
+        }
+
+    }
+
+    private fun isOwnerOrCollaborator(
+        ownerId: UUID,
+        projectId: UUID
+    ): Either<ProjectError, UUID> = trxManager.run {
+        val project = repoProjectInfo.findById(projectId)
+            ?: return@run failure(ProjectError.ProjectNotFound)
+
+        if(project.ownerId != ownerId){
+            val collaborators = repoCollaborators.getCollaborators(projectId)
+            if(collaborators.none { it.user.id == ownerId }) {
+                return@run failure(ProjectError.ProjectNotAuthorized)
+            }
+        }
+        success(project.ownerId)
     }
 
     fun uploadImage(

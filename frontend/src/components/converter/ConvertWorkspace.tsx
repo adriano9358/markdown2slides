@@ -5,12 +5,30 @@ import { SlideEditorToolbar } from "./SlideEditorToolbar";
 import { SlidePreview } from "./SlidePreview";
 import { MarkdownEditor } from "./MarkdownEditor";
 import Split from "react-split";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../providers/AuthProvider";
 
 const ConvertWorkspace = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const editor = useMarkdownToSlides(projectId);
+  const { user } = useContext(AuthContext);
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    fetch(`http://localhost:8080/projects/${projectId}/role`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setRole(data.role))
+      .catch((err) => console.error("Failed to fetch role", err));
+  }, [projectId]);
 
   if (!projectId) return <div>Error: No project ID provided.</div>;
+  if (!role) return <div>Loading role...</div>;
+
+  const isReadOnly = role === "VIEWER";
 
   return (
     <div className="w-100 h-100 d-flex flex-column bg-light overflow-hidden">
@@ -28,6 +46,7 @@ const ConvertWorkspace = () => {
             markdown={editor.markdown}
             setMarkdown={editor.setMarkdown}
             projectId={projectId}
+            readOnly={isReadOnly}
           />
           <SlidePreview slideContent={editor.slideContent} loading={editor.loading} />
         </Split>

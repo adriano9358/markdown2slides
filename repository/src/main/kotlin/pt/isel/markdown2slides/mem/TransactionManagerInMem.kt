@@ -8,7 +8,9 @@ import pt.isel.markdown2slides.TransactionManager
 class TransactionManagerInMem : TransactionManager {
     private val repoProjectInfo = RepositoryProjectInfoInMem()
     private val repoUsers = RepositoryUserInMem()
+    private val repoCollaborators = RepositoryCollaboratorsInMem()
+    private val repoInvitations = RepositoryInvitationsInMem()
 
 
-    override fun <R> run(block: Transaction.() -> R): R = block(TransactionInMem(repoProjectInfo, repoUsers))
+    override fun <R> run(block: Transaction.() -> R): R = block(TransactionInMem(repoProjectInfo, repoUsers, repoCollaborators, repoInvitations))
 }

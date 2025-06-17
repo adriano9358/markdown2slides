@@ -4,12 +4,14 @@ interface MarkdownEditorProps {
   markdown: string;
   setMarkdown: (value: string) => void;
   projectId: string;
+  readOnly?: boolean;
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   markdown,
   setMarkdown,
   projectId,
+  readOnly
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -98,6 +100,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             key={type}
             className="btn btn-sm btn-outline-dark me-2"
             onClick={() => onInsertSyntax(type)}
+            disabled={readOnly}
           >
             {type.charAt(0).toUpperCase() + type.slice(1)}
           </button>
@@ -109,11 +112,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           style={{ display: "none" }}
           id="imageUploadInput"
           onChange={handleImageUpload}
+          disabled={readOnly}
         />
         <label
           htmlFor="imageUploadInput"
-          className="btn btn-sm btn-outline-dark me-2"
-          style={{ cursor: "pointer" }}
+          className={`btn btn-sm btn-outline-dark me-2 ${readOnly ? "disabled" : ""}`}
+          style={{
+            cursor: readOnly ? "not-allowed" : "pointer",
+            pointerEvents: readOnly ? "none" : "auto"
+          }}
         >
           Upload Image
         </label>
@@ -124,6 +131,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         className="form-control flex-grow-1"
         value={markdown}
         onChange={(e) => setMarkdown(e.target.value)}
+        readOnly={readOnly}
       />
     </div>
   );
