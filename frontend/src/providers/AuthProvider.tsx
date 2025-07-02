@@ -1,11 +1,38 @@
 import * as React from "react"
+import { getUserInfo } from "../http/userApi";
 
+/*
+ * AuthProvider component to manage authentication state.
+ * Fetches user data from the backend and provides it through context.
+ */
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const [user, setUser] = React.useState<AuthUser | undefined>(undefined)
+    const [loading, setLoading] = React.useState(true)
+
+    React.useEffect(() => {
+        getUserInfo().then(data => {
+            setUser({ id:data.id, name: data.name, email: data.email });
+        })
+        .catch(err => {
+            setUser(undefined)
+        })
+        .finally(() => {
+            setLoading(false)
+        })
+    }, [])
+
+    return (
+        <AuthContext.Provider value={{ user, setUser, loading }}>
+            {children}
+        </AuthContext.Provider>
+    )
+}
 
 type AuthUser = {
     id: string;
     name: string;
     email: string;
-  };
+};
 
 type AuthContextType = {
     user: AuthUser | undefined;
@@ -18,38 +45,3 @@ export const AuthContext = React.createContext<AuthContextType>({
     setUser: () => { throw Error("Not implemented!") },
     loading: true,
 })
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = React.useState<AuthUser | undefined>(undefined)
-    const [loading, setLoading] = React.useState(true)
-
-    React.useEffect(() => {
-        //console.log("Fetching user...")
-        fetch("http://localhost:8080/user", {
-            credentials: "include"
-        })
-        .then(res => {
-            //console.log("Response status:", res.status)
-            if (!res.ok) throw new Error("Not authenticated")
-            return res.json()
-        })
-        .then(data => {
-            //console.log("User data received:", data)
-            setUser({ id:data.id, name: data.name, email: data.email });
-        })
-        .catch(err => {
-            //console.warn("Fetch failed:", err)
-            setUser(undefined)
-        })
-        .finally(() => {
-            //console.log("Loading finished")
-            setLoading(false)
-        })
-    }, [])
-
-    return (
-        <AuthContext.Provider value={{ user, setUser, loading }}>
-            {children}
-        </AuthContext.Provider>
-    )
-}

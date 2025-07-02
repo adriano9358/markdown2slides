@@ -34,41 +34,7 @@ class CustomOAuth2UserService(
     }
 
 
-    /*override fun loadUser(userRequest: OAuth2UserRequest): OAuth2User {
-        val delegate = DefaultOAuth2UserService()
-        val oAuth2User = delegate.loadUser(userRequest)
 
-        val email = oAuth2User.getAttribute<String>("email")
-            ?: throw IllegalArgumentException("Email not found in attributes")
-        val name = oAuth2User.getAttribute<String>("name")
-            ?: throw IllegalArgumentException("Name not found in attributes")
-
-        logger.info("User email: $email")
-        logger.info("User name: $name")
-
-        val user = userRepository.findByEmail(email)
-            if(user != null) {
-                logger.info("User found in repository: ${user.id}")
-                return DefaultOAuth2User(
-                    setOf(SimpleGrantedAuthority("ROLE_USER")),
-                    mapOf("userId" to user.id.toString(), "email" to user.email, "name" to user.name),
-                    "userId"
-                )
-            } else {
-                logger.info("User not found in repository, creating new user")
-                val newUser = User(
-                    id = UUID.randomUUID(),
-                    name = name,
-                    email = email
-                )
-                userRepository.save(newUser)
-                return DefaultOAuth2User(
-                    setOf(SimpleGrantedAuthority("ROLE_USER")),
-                    mapOf("userId" to newUser.id.toString(), "email" to newUser.email, "name" to newUser.name),
-                    "userId"
-                )
-            }
-    }*/
 
     override fun loadUser(userRequest: OidcUserRequest): OidcUser {
         val delegate = OidcUserService()

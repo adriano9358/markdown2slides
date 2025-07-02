@@ -2,18 +2,17 @@ import './scss/styles.scss'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
-//import MarkdownToSlides from './MarkdownToSlides';
 import ConvertWorkspace from './components/converter/ConvertWorkspace';
 import { About } from './pages/About';
 import { Contact } from './pages/Contact';
 import { AuthProvider } from './providers/AuthProvider';
 import { AuthRequire } from './auth/AuthRequire';
 import MyProjects from './pages/MyProjects';
-import PrintSlides from './pages/PrintsSlides';
-import ProjectTestPanel from './ProjectTestPanel';
 import { Login } from './pages/Login';
 import CollaboratorsPage from './components/converter/CollaboratorsPage';
 import InvitationsPage from './components/invitations/InvitationsPage';
+import { PrintSlides } from './pages/PrintsSlides';
+
 
 const router = createBrowserRouter([
   {
@@ -21,14 +20,6 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
-      {
-        path: "projects/test",
-        element: (
-          <AuthRequire>
-            <ProjectTestPanel />
-          </AuthRequire>
-        ),
-      },
       {
         path: "projects",
         element: (

@@ -12,9 +12,8 @@ import java.util.*
 
 val defaultUUID = UUID.fromString("3a427d49-0e7c-46d4-95c0-18ca6b34aa48")
 
-@CrossOrigin(origins = ["http://localhost:8000"])
 @RestController
-@RequestMapping("/projects")
+@RequestMapping("/api/projects")
 class ProjectInfoController(val projectInfoService: ProjectInfoService) {
 
     @GetMapping

@@ -1,6 +1,3 @@
-// File: components/LoadingSpinner.tsx
-import React from "react";
-
 export const LoadingSpinner = () => {
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>

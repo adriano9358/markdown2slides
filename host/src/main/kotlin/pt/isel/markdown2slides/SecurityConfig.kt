@@ -3,12 +3,12 @@ package pt.isel.markdown2slides
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.config.Customizer.withDefaults
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.web.servlet.config.annotation.CorsRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 const val MAX_SESSIONS_PER_USER = 3
 const val MAX_SESSIONS_PREVENTS_LOGIN = false // false -> invalidate oldest
@@ -16,10 +16,12 @@ const val MAX_SESSIONS_PREVENTS_LOGIN = false // false -> invalidate oldest
 
 @Configuration
 class SecurityConfig(private val customOAuth2UserService: CustomOAuth2UserService){
+    private val logger = org.slf4j.LoggerFactory.getLogger(SecurityConfig::class.java)
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .cors(withDefaults())
+            .csrf { it.disable() }
+            //.cors{ it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { session ->
                 session
                     .maximumSessions(MAX_SESSIONS_PER_USER)
@@ -27,7 +29,7 @@ class SecurityConfig(private val customOAuth2UserService: CustomOAuth2UserServic
             }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/login", "/user", "/public/**").permitAll()
+                    .requestMatchers("/login", "/api/user", "/public/**").permitAll()
                     .anyRequest().authenticated()
                     //.anyRequest().permitAll()
             }
@@ -43,17 +45,13 @@ class SecurityConfig(private val customOAuth2UserService: CustomOAuth2UserServic
                     response.status = HttpServletResponse.SC_OK
                 }
             }
-            .csrf { it.disable() }
 
         return http.build()
     }
-}
 
 
-@Configuration
-class CorsConfig {
     @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
+    fun corsConfigurationSource(): UrlBasedCorsConfigurationSource {
         val config = CorsConfiguration()
         config.allowedOrigins = listOf("http://localhost:8000")
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
@@ -68,3 +66,13 @@ class CorsConfig {
 
 
 
+@Configuration
+class CorsConfig : WebMvcConfigurer {
+    override fun addCorsMappings(registry: CorsRegistry) {
+        registry.addMapping("/**")
+            .allowedOrigins("http://localhost:8000")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedHeaders("*")
+            .allowCredentials(true)
+    }
+}

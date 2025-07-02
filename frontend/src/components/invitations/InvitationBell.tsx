@@ -1,30 +1,25 @@
 import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../providers/AuthProvider";
+import { getUserInvitations } from "../../http/invitationsApi";
 
 export const InvitationBell = () => {
   const { user } = useContext(AuthContext);
   const [hasInvitations, setHasInvitations] = useState(false);
 
+  const fetchInvitations = async () => {
+    if (!user) return;
+    try {
+      const invitations = await getUserInvitations();
+      const pending = invitations.filter((inv: any) => inv.status === "PENDING");
+      setHasInvitations(pending.length > 0);
+    } catch (error) {
+      console.error("Failed to fetch invitations:", error);
+    }
+  };
+
+
   useEffect(() => {
-    const fetchInvitations = async () => {
-      if (!user) return;
-
-      try {
-        const res = await fetch("http://localhost:8080/invitations", {
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const pending = data.filter((inv: any) => inv.status === "PENDING");
-          setHasInvitations(pending.length > 0);
-        }
-      } catch (error) {
-        console.error("Failed to fetch invitations:", error);
-      }
-    };
-
     fetchInvitations();
   }, [user]);
 

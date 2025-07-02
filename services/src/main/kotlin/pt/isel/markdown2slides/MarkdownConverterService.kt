@@ -47,6 +47,22 @@ class MarkdownConverterService {
         //return success(outputFile.readText())
     }
 
+    /*fun convertToPdfSlides(markdown: String, userId: UUID, projectId: UUID): Either<ConversionError, ByteArray> {
+        val markdownFile = File.createTempFile(FILE_PREFIX + projectId, INPUT_FILE_FORMAT).apply {
+            writeText(markdown)
+        }
+        val outputFile = File.createTempFile(FILE_PREFIX + projectId, ".pdf")
+
+        val command = listOf(
+            "pandoc",
+            "-t", "beamer",  // Usa Beamer para PDF estilo LaTeX
+            "-o", outputFile.absolutePath,
+            markdownFile.absolutePath
+        )
+
+        return executePandoc(command, outputFile)
+    }*/
+
     /*fun convertToHtmlSlides(markdown: String, projectId: Long = 1L, userId: String = DEFAULT_USER_ID): Either<ConversionError, String> {
         val projectDir = File("data/$userId/e7453f29-a228-4cc1-89c4-d25ad8eb95ed")
         if (!projectDir.exists()) projectDir.mkdirs()

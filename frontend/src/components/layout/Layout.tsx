@@ -1,12 +1,9 @@
-import * as React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Navbar } from "./Navbar";
 
 export function Layout() {
   const location = useLocation();
-
   const isPrintPage = location.pathname.includes('/print');
-
 
   return isPrintPage ? (
     <Outlet />

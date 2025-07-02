@@ -1,52 +1,37 @@
-// PrintSlides.tsx
 import { useEffect, useRef, useState } from "react";
 import Reveal from "reveal.js";
 import "reveal.js/dist/reveal.css";
 import "reveal.js/dist/theme/white.css";
 import { useParams } from "react-router-dom";
+import { getProjectContent } from "../http/projectContentApi";
+import { convertProject } from "../http/conversionApi";
 
-const PrintSlides = () => {
+export const PrintSlides = () => {
     const { projectId } = useParams<{ projectId: string }>();
     const [slideContent, setSlideContent] = useState("");
     const deckRef = useRef<Reveal.Api | null>(null);
+    
+
+    const fetchContent = async () => {
+        try {
+            const md = await getProjectContent(projectId);
+            const html = await convertProject(true, "Content:" + md);
+            setSlideContent(html);
+        } catch (err) {
+            console.error("Failed to load slides", err);
+        }
+    };
 
     useEffect(() => {
-        const fetchContent = async () => {
-            try {
-                const response = await fetch(`http://localhost:8080/projects/content/${projectId}`, {
-                    credentials: "include",
-                });
-                const md = await response.text();
-                const convertResp = await fetch("http://localhost:8080/convert?standalone=true", {
-                    method: "POST",
-                    credentials: "include",
-                    headers: { "Content-Type": "text/plain" },
-                    body: "Content:" + md,
-                });
-                const html = await convertResp.text();
-                setSlideContent(html);
-            } catch (err) {
-                console.error("Failed to load slides", err);
-            }
-        };
-
         fetchContent();
     }, [projectId]);
 
     useEffect(() => {
         if (slideContent) {
             const deck = new Reveal();
-            deck.initialize({
-                embedded: false,
-                hash: false,
-                history: false,
-                controls: false,
-                slideNumber: false,
-                progress: false,
-                plugins: [],
-                view: "scroll", // Reveal.js 4.6+ only
-                transition: "none",
-            }).then(() => {
+            deck.initialize(
+                { embedded: false, hash: false, history: false, controls: false, slideNumber: false, progress: false, plugins: [], view: "scroll", transition: "none"}
+            ).then(() => {
                 deckRef.current = deck;
                 setTimeout(() => {
                     window.print();
@@ -71,4 +56,3 @@ const PrintSlides = () => {
     );
 };
 
-export default PrintSlides;

@@ -7,9 +7,8 @@ import pt.isel.markdown2slides.model.Problem
 import pt.isel.markdown2slides.utils.toProblem
 import java.util.*
 
-@CrossOrigin(origins = ["http://localhost:8000"])
 @RestController
-@RequestMapping("/convert")
+@RequestMapping("/api/convert")
 class ConversionController(private val converterService: MarkdownConverterService) {
 
     @PostMapping

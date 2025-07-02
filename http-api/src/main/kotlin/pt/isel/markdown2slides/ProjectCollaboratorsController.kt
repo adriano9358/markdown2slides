@@ -4,13 +4,12 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.web.bind.annotation.*
-import pt.isel.markdown2slides.model.AddCollaboratorDTO
 import pt.isel.markdown2slides.model.RoleUpdateDTO
 import pt.isel.markdown2slides.utils.toProblem
 import java.util.*
 
 @RestController
-@CrossOrigin(origins = ["http://localhost:8000"])
+@RequestMapping("/api")
 class ProjectCollaboratorsController(
     val collaboratorService: ProjectCollaboratorsService
 ) {

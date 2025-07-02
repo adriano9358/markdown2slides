@@ -2,27 +2,13 @@ import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../providers/AuthProvider";
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { Collaborator } from "../../domain/Collaborator";
+import { Invitation } from "../../domain/Invitation";
+import { SendInvitationData } from "../../domain/SendInvitationData";
+import { getCollaborators } from "../../http/collaboratorsApi";
+import { getProjectInvitations, sendNewInvitation } from "../../http/invitationsApi";
 
 
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface Collaborator {
-  project_id: string;
-  user: User;
-  role: string;
-}
-
-interface Invitation {
-  id: string;
-  email: string;
-  role: string;
-  status: string;
-}
 
 export default function CollaboratorsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -40,36 +26,31 @@ export default function CollaboratorsPage() {
   }, [projectId]);
 
   const fetchCollaborators = async () => {
-    const res = await fetch(`http://localhost:8080/projects/${projectId}/collaborators`, {
-      method: "GET",
-      credentials: "include",
-    });
-    const data: Collaborator[] = await res.json();
-    setCollaborators(data);
-    setIsOwner(data.some((c) => c.role === "ADMIN" && c.user.id === user?.id));
+    getCollaborators(projectId)
+      .then((data) => { 
+        setCollaborators(data); 
+        setIsOwner(data.some((c) => c.role === "ADMIN" && c.user.id === user?.id));
+      })
+      .catch((err) => console.error("Failed to fetch collaborators", err));
   };
 
   const fetchInvitations = async () => {
-    const res = await fetch(`http://localhost:8080/projects/${projectId}/invitations`, {
-      method: "GET",
-      credentials: "include",
-    });
-    const data = await res.json();
-    setInvitations(data);
+    getProjectInvitations(projectId)
+      .then((data) => { 
+        setInvitations(data); 
+      })
+      .catch((err) => console.error("Failed to fetch project invitations", err));
   };
 
   const sendInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`http://localhost:8080/projects/${projectId}/invitations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email, role }),
-    });
-    if (res.ok) {
-      setEmail("");
-      fetchInvitations();
-    }
+    const sendData: SendInvitationData = {email: email, role: role} 
+    sendNewInvitation(projectId, sendData)
+      .then((data) => { 
+        setEmail(""); 
+        fetchInvitations();
+      })
+      .catch((err) => console.error("Failed to fetch project invitations", err));
   };
 
   const removeCollaborator = async (userId: string) => {
@@ -85,13 +66,13 @@ export default function CollaboratorsPage() {
   return (
     <div className="container py-4" >
       <div className="mb-3">
-  <button
-    className="btn btn-outline-secondary d-flex align-items-center"
-    onClick={() => navigate(`/projects/${projectId}`)}
-  >
-    <i className="bi bi-arrow-left me-2"></i> Back to Project
-  </button>
-</div>
+        <button
+          className="btn btn-outline-secondary d-flex align-items-center"
+          onClick={() => navigate(`/projects/${projectId}`)}
+        >
+          <i className="bi bi-arrow-left me-2"></i> Back to Project
+        </button>
+      </div>
       <h2 className="mb-4">Collaborators</h2>
       {/* Collaborators List */}
       <div className="table-responsive mb-5">

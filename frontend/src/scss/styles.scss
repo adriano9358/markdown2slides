@@ -41,6 +41,78 @@ body {
 */
 
   .slide-editor-container {
+    height: 100%;
+    max-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     background-color: $gray-300;
   }
   
+
+  /*.cm-scroller {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    max-height: 100%;
+    overflow: auto !important;
+  }*/
+/*
+  .cm-scroller {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    max-height: 100%;
+    overflow: auto !important; 
+  }
+  
+  .cm-content {
+    flex-grow: 0 !important;
+    min-height: auto !important;
+    //overflow-y: auto;
+  }
+
+
+  .cm-editor {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }*/
+  
+
+  .editor-wrapper {
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    display: flex;
+  }
+  
+
+
+/* Custom CSS or Tailwind classes */
+/*.codemirror-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 300%;
+  overflow: hidden;
+
+  .cm-editor {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .cm-scroller {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    overflow: auto !important;
+    max-height: 100%;
+  }
+
+  .cm-content {
+    flex-grow: 0 !important;
+    min-height: auto !important;
+  }
+}*/

@@ -1,15 +1,16 @@
-// File: pages/MyProjects.tsx
-import React, { useEffect, useState, useContext } from "react";
-import { AuthContext } from "../providers/AuthProvider";
-import { ProjectList, ProjectMetadata } from "../components/projectManager/ProjectList";
+import React, { useEffect, useState } from "react";
+import { ProjectList } from "../components/projectManager/ProjectList";
+import { ProjectMetadata } from "../domain/ProjectMetadata";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
+import { createProject, getProjects } from "../http/projectInfoApi";
 
 export default function MyProjects() {
   const [projects, setProjects] = useState<ProjectMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [projectName, setProjectName] = useState("");
-  const { user } = useContext(AuthContext);
+  const [projectDescription, setProjectDescription] = useState("");
+  const [projectVisibility, setProjectVisibility] = useState(true);
 
   useEffect(() => {
     fetchProjects();
@@ -17,12 +18,9 @@ export default function MyProjects() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch("http://localhost:8080/projects", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch projects");
-      const data = await response.json();
-      setProjects(data);
+      const data = await getProjects();
+      const sorted = data.sort((a:any, b:any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      setProjects(sorted);
     } catch (error) {
       console.error("Error fetching projects:", error);
     } finally {
@@ -33,18 +31,14 @@ export default function MyProjects() {
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8080/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          name: projectName,
-          description: "description",
-          visibility: true,
-        }),
+      await createProject({
+        name: projectName,
+        description: projectDescription,
+        visibility: projectVisibility,
       });
-      if (!response.ok) throw new Error("Failed to create project");
       setProjectName("");
+      setProjectDescription("");
+      setProjectVisibility(true);
       setShowForm(false);
       fetchProjects();
     } catch (error) {
@@ -73,6 +67,28 @@ export default function MyProjects() {
                 required
               />
             </div>
+
+            <div className="mb-2">
+              <label className="form-label">Description</label>
+              <textarea
+                className="form-control"
+                value={projectDescription}
+                onChange={(e) => setProjectDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Visibility</label>
+              <select
+                className="form-select"
+                value={projectVisibility ? "public" : "private"}
+                onChange={(e) => setProjectVisibility(e.target.value === "public")}
+              >
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+
             <button type="submit" className="btn btn-primary me-2">
               Create
             </button>

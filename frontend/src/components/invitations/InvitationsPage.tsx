@@ -1,24 +1,10 @@
-import React, { useEffect, useState } from "react";
-
-interface ProjectBasicInfo {
-  id: string;
-  name: string;
-  description: string | null;
-  updatedAt: string; // ISO string
-}
-
-interface Invitation {
-  id: string;
-  project: ProjectBasicInfo;
-  email: string;
-  role: string;
-  status: string; // "PENDING", "ACCEPTED", etc.
-  invited_by: string | null;
-  invited_at: string;
-}
+import { useEffect, useState } from "react";
+import { LoadingSpinner } from "../common/LoadingSpinner";
+import { getUserInvitations, respondToInvitation } from "../../http/invitationsApi";
+import { UserInvitation } from "../../domain/UserInvitation";
 
 export default function InvitationsPage() {
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,11 +15,7 @@ export default function InvitationsPage() {
   const fetchInvitations = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8080/invitations", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch invitations");
-      const data: Invitation[] = await res.json();
+      const data: UserInvitation[] = await getUserInvitations();
       setInvitations(data);
       setError(null);
     } catch (err: any) {
@@ -45,28 +27,15 @@ export default function InvitationsPage() {
 
   const respondInvitation = async (invitationId: string, accept: boolean) => {
     try {
-      const res = await fetch(
-        `http://localhost:8080/invitations/${invitationId}/respond`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            status: accept ? "ACCEPTED" : "DECLINED",
-          }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to respond to invitation");
-      fetchInvitations(); // Refresh after action
+      respondToInvitation(invitationId, { status: accept ? "ACCEPTED" : "DECLINED" });
+      fetchInvitations(); 
     } catch (err) {
-      alert("Error responding to invitation");
-      console.error(err);
+      console.error("Error responding to invitation:" + err);
     }
   };
 
-  if (loading) return <p>Loading invitations...</p>;
+  if (loading) return <LoadingSpinner/>;
   if (error) return <p className="text-danger">Error: {error}</p>;
-
   return (
     <div className="container py-4">
       <h2>Project Invitations</h2>

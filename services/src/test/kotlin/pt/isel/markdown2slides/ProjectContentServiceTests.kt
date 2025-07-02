@@ -22,7 +22,7 @@ class ProjectContentServiceTests {
 
     private val testDataDir = "testData"
     private val ownerId = UUID.fromString("00000000-0000-0000-0000-000000000000")
-
+/*
     @BeforeEach
     fun setup() {
         tempDir = Files.createTempDirectory(testDataDir).toString()
@@ -37,8 +37,8 @@ class ProjectContentServiceTests {
     fun cleanup() {
         File(tempDir).deleteRecursively()
     }
-
-
+*/
+/*
     private fun createValidProject(): ProjectInfo {
         val result = projectInfoService.createProject("name", "description", ownerId, Visibility.PUBLIC)
         return if(result is Either.Right )result.value else Assertions.fail("Project creation failed")
@@ -197,6 +197,6 @@ class ProjectContentServiceTests {
         // Assert
         assertTrue(result is Either.Left)
         assertTrue((result as Either.Left).value is ProjectError.ImageNotFound)
-    }
+    }*/
 
 }

@@ -7,7 +7,9 @@ import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
+import org.springframework.scheduling.annotation.EnableScheduling
 
+@EnableScheduling
 @SpringBootApplication
 class Markdown2slidesApplication{
 	@Bean

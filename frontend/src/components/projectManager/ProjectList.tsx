@@ -1,14 +1,8 @@
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../providers/AuthProvider";
+import { ProjectMetadata } from "../../domain/ProjectMetadata";
 
-
-export type ProjectMetadata = {
-  id: string;
-  name: string;
-  createdAt: string;
-  ownerId: string;
-};
 
 interface ProjectListProps {
   projects: ProjectMetadata[];
