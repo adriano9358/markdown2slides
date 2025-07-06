@@ -1,7 +1,7 @@
-package pt.isel.markdown2slides.mem
+package pt.isel.markdown2slides.data.mem
 
 import jakarta.inject.Named
-import pt.isel.markdown2slides.RepositoryUser
+import pt.isel.markdown2slides.data.RepositoryUser
 import pt.isel.markdown2slides.User
 import java.util.UUID
 

@@ -1,7 +1,8 @@
 package pt.isel.markdown2slides
 
 import jakarta.inject.Named
-import pt.isel.markdown2slides.mem.TransactionManagerInMem
+import pt.isel.markdown2slides.data.TransactionManager
+import pt.isel.markdown2slides.file.RepositoryProjectContent
 import java.time.Instant
 import java.util.*
 

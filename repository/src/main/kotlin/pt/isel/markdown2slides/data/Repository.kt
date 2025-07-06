@@ -1,4 +1,4 @@
-package pt.isel.markdown2slides
+package pt.isel.markdown2slides.data
 
 import java.util.UUID
 

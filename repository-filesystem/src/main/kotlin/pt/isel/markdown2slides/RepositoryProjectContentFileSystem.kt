@@ -1,10 +1,13 @@
 package pt.isel.markdown2slides
 
 import jakarta.inject.Named
+import pt.isel.markdown2slides.file.RepositoryProjectContent
 import java.io.File
 import java.nio.file.Path
 import java.util.UUID
 
+const val MARKDOWN_FILE_NAME = "content.md"
+const val IMAGE_FOLDER_NAME = "image"
 const val BASE_FILE_DIR = "./data"
 const val MARKDOWN_FILE_INIT_CONTENT = "# Slide 1\n\nThis is an example slide. To create another slide, add a new line with `---` followed by the slide content, like this:\n\n---\n\n# Slide 2\n\nThis is the second slide. You can add as many slides as you want by repeating the `---` pattern."
 
@@ -19,10 +22,10 @@ class RepositoryProjectContentFileSystem(private val baseDir: String = BASE_FILE
         Path.of(baseDir, userId.toString(), projectId.toString())
 
     private fun getMarkdownFile(userId: UUID, projectId: UUID): Path =
-        getProjectDir(userId, projectId).resolve("content.md")
+        getProjectDir(userId, projectId).resolve(MARKDOWN_FILE_NAME)
 
     private fun getImagesDir(userId: UUID, projectId: UUID): Path =
-        getProjectDir(userId, projectId).resolve("images")
+        getProjectDir(userId, projectId).resolve(IMAGE_FOLDER_NAME)
 
     private fun getImageFile(userId: UUID, projectId: UUID, image: String, extension: String): Path =
         getImagesDir(userId, projectId).resolve("$image.$extension")

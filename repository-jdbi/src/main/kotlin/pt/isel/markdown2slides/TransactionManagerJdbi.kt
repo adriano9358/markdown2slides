@@ -1,6 +1,8 @@
 package pt.isel.markdown2slides
 
 import org.jdbi.v3.core.Jdbi
+import pt.isel.markdown2slides.data.Transaction
+import pt.isel.markdown2slides.data.TransactionManager
 
 class TransactionManagerJdbi(
     private val jdbi: Jdbi,

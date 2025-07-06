@@ -1,11 +1,12 @@
 package pt.isel.markdown2slides
 
 import org.jdbi.v3.core.Handle
+import pt.isel.markdown2slides.data.RepositoryInvitations
 import java.util.*
 
 class RepositoryInvitationsJdbi(
     private val handle: Handle
-):RepositoryInvitations {
+): RepositoryInvitations {
     override fun createInvitation(
         projectId: UUID,
         email: String,
@@ -134,6 +135,12 @@ class RepositoryInvitationsJdbi(
             .bind("projectId", projectId)
             .bind("email", email)
             .execute()
+    }
+
+    override fun clear() {
+        handle.createUpdate("""
+            DELETE FROM m2s.project_invitations
+        """).execute()
     }
 
     override fun deleteAllForProject(projectId: UUID) {

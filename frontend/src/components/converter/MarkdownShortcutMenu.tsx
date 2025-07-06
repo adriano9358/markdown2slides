@@ -71,7 +71,7 @@ export const MarkdownShortcutMenu: React.FC<MarkdownShortcutMenuProps> = ({
   };
 
   return (
-    <div className="btn-toolbar mb-2" role="toolbar">
+    <div className="btn-toolbar mb-2 justify-content-center" role="toolbar">
       {["bold", "italic", "code", "link", "header", "quote", "ul", "ol"].map((type) => (
         <button
           key={type}

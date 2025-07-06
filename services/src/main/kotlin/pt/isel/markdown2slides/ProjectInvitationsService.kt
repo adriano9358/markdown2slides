@@ -2,6 +2,7 @@ package pt.isel.markdown2slides
 
 
 import jakarta.inject.Named
+import pt.isel.markdown2slides.data.TransactionManager
 import java.util.*
 
 @Named

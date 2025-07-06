@@ -1,8 +1,7 @@
-package pt.isel.markdown2slides
+package pt.isel.markdown2slides.data
 
 interface Transaction {
     val repoProjectInfo: RepositoryProjectInfo
-    //val repoProjectContent: RepositoryProjectContent
     val repoUser: RepositoryUser
     val repoCollaborators: RepositoryCollaborators
     val repoInvitations: RepositoryInvitations

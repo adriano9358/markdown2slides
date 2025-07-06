@@ -1,26 +1,26 @@
-package pt.isel.markdown2slides.mem
+package pt.isel.markdown2slides.data.mem
 
 import jakarta.inject.Named
 import pt.isel.markdown2slides.ProjectInfo
-import pt.isel.markdown2slides.RepositoryProjectInfo
-import pt.isel.markdown2slides.SlideTheme
+import pt.isel.markdown2slides.data.RepositoryProjectInfo
 import pt.isel.markdown2slides.Visibility
 import java.time.Instant
 import java.util.*
 
+const val DEFAULT_THEME = "white"
 @Named
-class RepositoryProjectInfoInMem: RepositoryProjectInfo{
+class RepositoryProjectInfoInMem(private val collaboratorsRepo: RepositoryCollaboratorsInMem): RepositoryProjectInfo {
 
     private val projects = mutableListOf<ProjectInfo>()
 
     override fun createProject(name: String, description: String, ownerId: UUID, visibility: Visibility): ProjectInfo =
-        ProjectInfo(UUID.randomUUID(), name, description, ownerId, Instant.now(), Instant.now(), "white", visibility)
+        ProjectInfo(UUID.randomUUID(), name, description, ownerId, Instant.now(), Instant.now(), DEFAULT_THEME, visibility)
             .also { projects.add(it) }
 
-
-    override fun getPersonalProjects(ownerId: UUID): List<ProjectInfo> =
-        projects.filter { it.ownerId == ownerId }.toList()
-
+    override fun getPersonalProjects(ownerId: UUID): List<ProjectInfo>{
+        return collaboratorsRepo.getUserProjects(ownerId)
+            .mapNotNull { findById(it) }
+    } //= projects.filter { it.ownerId == ownerId }.toList()
 
     override fun findById(id: UUID): ProjectInfo? = projects.firstOrNull { it.id == id }
 

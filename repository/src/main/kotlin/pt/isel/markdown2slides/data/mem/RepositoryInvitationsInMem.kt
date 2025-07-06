@@ -1,12 +1,13 @@
-package pt.isel.markdown2slides.mem
+package pt.isel.markdown2slides.data.mem
 
 import jakarta.inject.Named
 import pt.isel.markdown2slides.*
+import pt.isel.markdown2slides.data.RepositoryInvitations
 import java.time.Instant
 import java.util.*
 
 @Named
-class RepositoryInvitationsInMem : RepositoryInvitations {
+class RepositoryInvitationsInMem(private val projectRepo: RepositoryProjectInfoInMem) : RepositoryInvitations {
 
     private val invitations = mutableMapOf<UUID, ProjectInvitation>()
 
@@ -25,13 +26,14 @@ class RepositoryInvitationsInMem : RepositoryInvitations {
     override fun getInvitationsForUser(email: String): List<ProjectInvitationExtended> {
         val invite = invitations.values.filter { it.email == email }
         return invite.map { invitation ->
+            val project = projectRepo.findById(invitation.project_id) ?: throw IllegalArgumentException("Project with ID ${invitation.project_id} does not exist")
             ProjectInvitationExtended(
                 id = invitation.id,
                 project = ProjectBasicInfo(
                     id = invitation.project_id,
-                    name = "Project Name", // Placeholder, as we don't have project details in memory
-                    description = null, // Placeholder, as we don't have project details in memory
-                    updatedAt = Instant.now() // Placeholder, as we don't have project details in memory
+                    name = project.name,
+                    description = project.description,
+                    updatedAt = project.updatedAt,
                 ),
                 email = invitation.email,
                 role = invitation.role,
@@ -70,5 +72,9 @@ class RepositoryInvitationsInMem : RepositoryInvitations {
 
     override fun deleteAnsweredInvitations(projectId: UUID, email: String) {
         invitations.values.removeIf { it.project_id == projectId && it.email == email && it.status != InvitationStatus.PENDING }
+    }
+
+    override fun clear() {
+        invitations.clear()
     }
 }

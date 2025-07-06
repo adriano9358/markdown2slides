@@ -1,14 +1,8 @@
 package pt.isel.markdown2slides
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import pt.isel.markdown2slides.mem.RepositoryProjectInfoInMem
-import pt.isel.markdown2slides.mem.TransactionManagerInMem
-import java.io.File
-import java.nio.file.Files
+import pt.isel.markdown2slides.file.RepositoryProjectContent
+import pt.isel.markdown2slides.data.mem.RepositoryProjectInfoInMem
+import pt.isel.markdown2slides.data.mem.TransactionManagerInMem
 import java.util.*
 
 class ProjectContentServiceTests {

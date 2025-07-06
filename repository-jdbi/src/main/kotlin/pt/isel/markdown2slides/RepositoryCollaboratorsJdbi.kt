@@ -1,6 +1,7 @@
 package pt.isel.markdown2slides
 
 import org.jdbi.v3.core.Handle
+import pt.isel.markdown2slides.data.RepositoryCollaborators
 import java.util.*
 
 
@@ -77,5 +78,11 @@ class RepositoryCollaboratorsJdbi(
             .bind("userId", userId)
             .mapTo(UUID::class.java)
             .list()
+    }
+
+    override fun clear() {
+        handle.createUpdate("""
+            DELETE FROM m2s.project_collaborators
+        """).execute()
     }
 }

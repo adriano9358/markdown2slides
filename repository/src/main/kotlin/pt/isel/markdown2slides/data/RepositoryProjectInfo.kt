@@ -1,5 +1,7 @@
-package pt.isel.markdown2slides
+package pt.isel.markdown2slides.data
 
+import pt.isel.markdown2slides.ProjectInfo
+import pt.isel.markdown2slides.Visibility
 import java.util.*
 
 interface RepositoryProjectInfo: Repository<ProjectInfo> {

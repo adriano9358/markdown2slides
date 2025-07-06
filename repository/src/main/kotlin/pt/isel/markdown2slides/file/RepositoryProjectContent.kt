@@ -1,4 +1,4 @@
-package pt.isel.markdown2slides
+package pt.isel.markdown2slides.file
 
 import jakarta.inject.Named
 import java.util.*

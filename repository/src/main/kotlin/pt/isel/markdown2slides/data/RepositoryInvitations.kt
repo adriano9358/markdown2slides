@@ -1,6 +1,10 @@
-package pt.isel.markdown2slides
+package pt.isel.markdown2slides.data
 
 import jakarta.inject.Named
+import pt.isel.markdown2slides.InvitationStatus
+import pt.isel.markdown2slides.ProjectInvitation
+import pt.isel.markdown2slides.ProjectInvitationExtended
+import pt.isel.markdown2slides.ProjectRole
 import java.util.*
 
 @Named
@@ -16,4 +20,5 @@ interface RepositoryInvitations {
     fun deleteInvitation(id: UUID)
     fun deleteAllForProject(projectId: UUID)
     fun deleteAnsweredInvitations(projectId: UUID, email: String)
+    fun clear()
 }

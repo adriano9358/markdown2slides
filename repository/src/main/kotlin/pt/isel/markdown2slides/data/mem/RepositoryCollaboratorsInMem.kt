@@ -1,21 +1,22 @@
-package pt.isel.markdown2slides.mem
+package pt.isel.markdown2slides.data.mem
 
 import jakarta.inject.Named
 import pt.isel.markdown2slides.ProjectCollaborator
 import pt.isel.markdown2slides.ProjectRole
-import pt.isel.markdown2slides.RepositoryCollaborators
+import pt.isel.markdown2slides.data.RepositoryCollaborators
 import pt.isel.markdown2slides.UserInfo
 import java.util.*
 
 @Named
-class RepositoryCollaboratorsInMem: RepositoryCollaborators {
+class RepositoryCollaboratorsInMem(private val userRepo: RepositoryUserInMem): RepositoryCollaborators {
 
     private val collaborators = mutableMapOf<UUID, MutableList<ProjectCollaborator>>()
 
     override fun addCollaborator(projectId: UUID, userId: UUID, role: ProjectRole) {
+        val user = userRepo.findById(userId) ?: throw IllegalArgumentException("User with ID $userId does not exist")
         val collaborator = ProjectCollaborator(
             project_id = projectId,
-            user = UserInfo(userId, "", ""),
+            user = UserInfo(userId, user.name, user.email),
             role = role,
         )
         collaborators.computeIfAbsent(projectId) { mutableListOf() }.add(collaborator)
@@ -39,6 +40,10 @@ class RepositoryCollaboratorsInMem: RepositoryCollaborators {
     override fun getUserProjects(userId: UUID): List<UUID> {
         return collaborators.filter { it.value.any { collaborator -> collaborator.user.id == userId } }
             .keys.toList()
+    }
+
+    override fun clear() {
+        collaborators.clear()
     }
 
 

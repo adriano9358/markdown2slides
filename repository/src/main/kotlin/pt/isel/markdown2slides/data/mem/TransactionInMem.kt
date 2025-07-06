@@ -1,8 +1,8 @@
-package pt.isel.markdown2slides.mem
+package pt.isel.markdown2slides.data.mem
 
-import pt.isel.markdown2slides.RepositoryProjectInfo
-import pt.isel.markdown2slides.RepositoryUser
-import pt.isel.markdown2slides.Transaction
+import pt.isel.markdown2slides.data.RepositoryProjectInfo
+import pt.isel.markdown2slides.data.RepositoryUser
+import pt.isel.markdown2slides.data.Transaction
 
 class TransactionInMem(
     override val repoProjectInfo: RepositoryProjectInfo,
