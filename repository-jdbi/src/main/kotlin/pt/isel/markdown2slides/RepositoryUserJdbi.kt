@@ -1,6 +1,7 @@
 package pt.isel.markdown2slides
 
 import org.jdbi.v3.core.Handle
+import pt.isel.markdown2slides.data.RepositoryUser
 import java.util.*
 
 
