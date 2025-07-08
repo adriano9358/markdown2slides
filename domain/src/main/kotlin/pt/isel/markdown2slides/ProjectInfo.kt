@@ -8,11 +8,10 @@ enum class Visibility {
     PUBLIC, PRIVATE
 }
 
-data class SlideTheme(
-    val font: String = "Arial",
-    val backgroundColor: String = "#FFFFFF",
-    val textColor: String = "#000000"
-)
+
+enum class SlideTheme{
+    WHITE, BLACK, BEIGE, BLOOD, LEAGUE, MOON, NIGHT, SERIF, SIMPLE, SKY, SOLARIZED, DRACULA
+}
 
 data class ProjectInfo(
     val id: UUID,

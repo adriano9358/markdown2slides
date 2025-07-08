@@ -18,4 +18,5 @@ fun ProjectError.toProblem(): Problem = when (this) {
 
 fun ConversionError.toProblem(): Problem = when (this) {
     ConversionError.SomeConversionError -> Problem.ConversionProcessFailure
+    ConversionError.PandocError -> TODO()
 }

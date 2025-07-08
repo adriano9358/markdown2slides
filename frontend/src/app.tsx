@@ -37,7 +37,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "projects/:projectId/print",
+        path: "projects/:projectId/print/:theme",
         element: (
           <AuthRequire>
             <PrintSlides />

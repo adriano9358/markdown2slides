@@ -49,7 +49,7 @@ class ProjectCollaboratorsService(
         val project = repoProjectInfo.findById(projectId)
             ?: return@run failure(ProjectError.ProjectNotFound)
 
-        if( project.ownerId != ownerId && ownerId != userToRemoveId)
+        if( project.ownerId != ownerId || ownerId == userToRemoveId)
             return@run failure(ProjectError.ProjectNotAuthorized)
 
         val collaborators = repoCollaborators.getCollaborators(projectId)

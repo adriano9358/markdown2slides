@@ -7,7 +7,7 @@ import java.nio.file.Path
 import java.util.UUID
 
 const val MARKDOWN_FILE_NAME = "content.md"
-const val IMAGE_FOLDER_NAME = "image"
+const val IMAGE_FOLDER_NAME = "images"
 const val BASE_FILE_DIR = "./data"
 const val MARKDOWN_FILE_INIT_CONTENT = "# Slide 1\n\nThis is an example slide. To create another slide, add a new line with `---` followed by the slide content, like this:\n\n---\n\n# Slide 2\n\nThis is the second slide. You can add as many slides as you want by repeating the `---` pattern."
 
@@ -91,5 +91,12 @@ class RepositoryProjectContentFileSystem(private val baseDir: String = BASE_FILE
     override fun deleteProjectContent(userId: UUID, projectId: UUID): Boolean {
         val projectDir = getProjectDir(userId, projectId).toFile()
         return projectDir.deleteRecursively()
+    }
+
+    fun clear() {
+        val baseDirectory = File(baseDir)
+        if (baseDirectory.exists() && baseDirectory.isDirectory) {
+            baseDirectory.deleteRecursively()
+        }
     }
 }

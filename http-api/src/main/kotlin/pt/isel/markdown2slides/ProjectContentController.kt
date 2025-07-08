@@ -11,6 +11,8 @@ import java.util.*
 @RequestMapping("/api/projects/content")
 class ProjectContentController(private val projectContentService: ProjectContentService) {
 
+    private val logger = org.slf4j.LoggerFactory.getLogger(ProjectContentController::class.java)
+
     @GetMapping("/{id}")
     fun getProjectContent(
         @AuthenticationPrincipal principal: OAuth2User,

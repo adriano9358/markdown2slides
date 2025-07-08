@@ -13,9 +13,10 @@ interface CollabEditorProps {
   userId: string;
   edRef: React.MutableRefObject<() => string>;
   setMarkdown: (value: string) => void;
+  isReadOnly: boolean;
 }
 
-export const CollabEditor: React.FC<CollabEditorProps> = ({ projectId, userId, edRef, setMarkdown}) => {
+export const CollabEditor: React.FC<CollabEditorProps> = ({ projectId, userId, edRef, setMarkdown, isReadOnly}) => {
   const editorContainerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<EditorView | null>(null);
 
@@ -36,6 +37,7 @@ export const CollabEditor: React.FC<CollabEditorProps> = ({ projectId, userId, e
             "&": { maxHeight: "70vh" },
             ".cm-scroller": { overflow: "auto" },
           }),
+          ...(isReadOnly ? [EditorState.readOnly.of(true)] : []),
           ...peerExtension(projectId, version, userId),
           remoteCursorsField,
           renderCursorsPlugin,

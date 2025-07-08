@@ -9,8 +9,8 @@ import java.util.*
 
 @Named
 class ProjectInfoService(
-    private val trxManager: TransactionManager /*= TransactionManagerInMem()*/,
-    private val repoProjectContent: RepositoryProjectContent = RepositoryProjectContentFileSystem(),
+    private val trxManager: TransactionManager,
+    private val repoProjectContent: RepositoryProjectContent ,
 ) {
 
     fun createProject(
@@ -61,7 +61,6 @@ class ProjectInfoService(
     ): Either<ProjectError, ProjectInfo> = trxManager.run {
         val project = repoProjectInfo.findById(projectId) ?: return@run failure(ProjectError.ProjectNotFound)
         if(project.ownerId != ownerId) return@run failure(ProjectError.ProjectNotAuthorized)
-
 
         val updated = project.copy(
             name = name ?: project.name,

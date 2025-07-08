@@ -38,7 +38,7 @@ export const ConvertWorkspace = () => {
         >
           <div className="d-flex flex-column flex-grow-1 h-100" style={{ minHeight: 0 }}> 
             <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
-              <CollabEditor projectId={projectId} userId={user.id} edRef={editorRef} setMarkdown={setMarkdown}/>
+              <CollabEditor projectId={projectId} userId={user.id} edRef={editorRef} setMarkdown={setMarkdown} isReadOnly={isReadOnly}/>
             </div>
           </div>
 

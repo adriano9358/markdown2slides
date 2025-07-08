@@ -1,196 +1,226 @@
 package pt.isel.markdown2slides
 
-import pt.isel.markdown2slides.file.RepositoryProjectContent
-import pt.isel.markdown2slides.data.mem.RepositoryProjectInfoInMem
-import pt.isel.markdown2slides.data.mem.TransactionManagerInMem
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.test.assertIs
 
-class ProjectContentServiceTests {
 
-    private lateinit var tempDir: String
-    private lateinit var repoProjectContent: RepositoryProjectContent
-    private lateinit var projectContentService: ProjectContentService
-    private lateinit var trxManager: TransactionManagerInMem
-    private lateinit var repoProjectInfo: RepositoryProjectInfoInMem
+class ProjectContentServiceTests : ServiceTestsBase() {
+
+    private lateinit var contentService: ProjectContentService
     private lateinit var projectInfoService: ProjectInfoService
 
-    private val testDataDir = "testData"
-    private val ownerId = UUID.fromString("00000000-0000-0000-0000-000000000000")
-/*
     @BeforeEach
-    fun setup() {
-        tempDir = Files.createTempDirectory(testDataDir).toString()
-        repoProjectContent = RepositoryProjectContentFileSystem(baseDir = tempDir)
-        projectContentService = ProjectContentService(repoProjectContent)
-        trxManager = TransactionManagerInMem()
-        repoProjectInfo = RepositoryProjectInfoInMem()
+    fun setupService() {
+        contentService = ProjectContentService(trxManager, repoProjectContent)
         projectInfoService = ProjectInfoService(trxManager, repoProjectContent)
-    }
-
-    @AfterEach
-    fun cleanup() {
-        File(tempDir).deleteRecursively()
-    }
-*/
-/*
-    private fun createValidProject(): ProjectInfo {
-        val result = projectInfoService.createProject("name", "description", ownerId, Visibility.PUBLIC)
-        return if(result is Either.Right )result.value else Assertions.fail("Project creation failed")
+        addUser(firstUserId, firstUserName, firstUserEmail)
+        addUser(secondUserId, secondUserName, secondUserEmail)
     }
 
     @Test
-    fun `get project content`() {
-        // Arrange
-        val project = createValidProject()
+    fun `updateProjectContent stores and retrieves markdown correctly`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let {
+            assertTrue(it is Either.Right)
+            (it as Either.Right).value
+        }
 
-        // Act
-        val result = projectContentService.getProjectContent(ownerId, project.id)
+        val markdown = "# Hello Markdown"
+        val updateResult = contentService.updateProjectContent(firstUserId, project.id, markdown)
+        assertIs<Either.Right<Unit>>(updateResult)
 
-        // Assert
-        assertTrue(result is Either.Right)
-        assertTrue((result as Either.Right).value.isEmpty())
+        val getResult = contentService.getProjectContent(firstUserId, project.id)
+        assertIs<Either.Right<ProjectContentService.ProjectDetails>>(getResult)
+        assertEquals(markdown, getResult.value.content)
+        assertEquals(firstUserId, getResult.value.ownerId)
     }
 
     @Test
-    fun `get project content with invalid project id`() {
-        // Arrange
-        val invalidProjectId = UUID.randomUUID()
+    fun `updateProjectContent fails if project does not exist`() {
+        val nonExistentProjectId = UUID.randomUUID()
+        val markdown = "# Non-existent Project"
 
-        // Act
-        val result = projectContentService.getProjectContent(ownerId, invalidProjectId)
-
-        // Assert
+        val result = contentService.updateProjectContent(firstUserId, nonExistentProjectId, markdown)
         assertTrue(result is Either.Left)
-        assertTrue((result as Either.Left).value is ProjectError.ProjectNotFound)
-    }
-
-
-    @Test
-    fun `update project content`() {
-        // Arrange
-        val project = createValidProject()
-        val markdown = "markdown"
-
-        // Act
-        val contentBefore = projectContentService.getProjectContent(ownerId, project.id)
-        val result = projectContentService.updateProjectContent(ownerId, project.id, markdown)
-        val contentAfter = projectContentService.getProjectContent(ownerId, project.id)
-
-        // Assert
-        assertTrue(result is Either.Right)
-        assertTrue((contentBefore as Either.Right).value.isEmpty())
-        assertTrue((contentAfter as Either.Right).value == markdown)
+        assertEquals(ProjectError.ProjectNotFound, (result as Either.Left).value)
     }
 
     @Test
-    fun `update project content with invalid project id`() {
-        // Arrange
-        val invalidProjectId = UUID.randomUUID()
-        val markdown = "markdown"
+    fun `getProjectContent fails for unauthorized user`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
 
-        // Act
-        val result = projectContentService.updateProjectContent(ownerId, invalidProjectId, markdown)
-
-        // Assert
+        val result = contentService.getProjectContent(secondUserId, project.id)
         assertTrue(result is Either.Left)
-        assertTrue((result as Either.Left).value is ProjectError.ProjectNotFound)
+        assertEquals(ProjectError.UserNotInProject, (result as Either.Left).value)
     }
 
     @Test
-    fun `upload image`() {
-        // Arrange
-        val project = createValidProject()
-        val imageName = "image"
+    fun `getProjectContent retrieves content for owner`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
+
+        val markdown = "# Owner's Content"
+        contentService.updateProjectContent(firstUserId, project.id, markdown)
+
+        val getResult = contentService.getProjectContent(firstUserId, project.id)
+        assertIs<Either.Right<ProjectContentService.ProjectDetails>>(getResult)
+        assertEquals(markdown, getResult.value.content)
+        assertEquals(firstUserId, getResult.value.ownerId)
+    }
+
+    @Test
+    fun `getProjectContent retrieves content for collaborators`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
+
+        trxManager.run {
+            repoCollaborators.addCollaborator(project.id, secondUserId, ProjectRole.EDITOR)
+        }
+
+        val markdown = "# Collaborator's Content"
+        contentService.updateProjectContent(firstUserId, project.id, markdown)
+
+        val getResult = contentService.getProjectContent(secondUserId, project.id)
+        assertIs<Either.Right<ProjectContentService.ProjectDetails>>(getResult)
+        assertEquals(markdown, getResult.value.content)
+        assertEquals(firstUserId, getResult.value.ownerId)
+    }
+
+
+    @Test
+    fun `upload and get image works for collaborators`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
+
+        trxManager.run {
+            repoCollaborators.addCollaborator(project.id, secondUserId, ProjectRole.EDITOR)
+        }
+
+        val imageName = "test-image"
         val extension = "png"
+        val imageBytes = byteArrayOf(1, 2, 3, 4, 5)
+
+        val uploadResult = contentService.uploadImage(
+            secondUserId, project.id, imageName, extension, imageBytes
+        )
+        assertIs<Either.Right<Unit>>(uploadResult)
+
+        val getResult = contentService.getImage(
+            secondUserId, project.id, imageName, extension
+        )
+        assertIs<Either.Right<ByteArray>>(getResult)
+        assertTrue(getResult.value.contentEquals(imageBytes))
+    }
+
+    @Test
+    fun `uploadImage fails for unauthorized user`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
+
+        val imageName = "not-allowed"
+        val extension = "jpg"
+        val imageBytes = byteArrayOf(6, 7, 8)
+
+        val uploadResult = contentService.uploadImage(secondUserId, project.id, imageName, extension, imageBytes)
+        assertTrue(uploadResult is Either.Left)
+        assertEquals(ProjectError.ProjectNotAuthorized, (uploadResult as Either.Left).value)
+    }
+
+    @Test
+    fun `uploadImage fails if project does not exist`() {
+        val nonExistentProjectId = UUID.randomUUID()
+        val imageName = "non-existent"
+        val extension = "jpg"
         val imageBytes = byteArrayOf(1, 2, 3)
 
-        // Act
-        val result = projectContentService.uploadImage(ownerId, project.id, imageName, extension, imageBytes)
-
-        // Assert
-        assertTrue(result is Either.Right)
+        val uploadResult = contentService.uploadImage(firstUserId, nonExistentProjectId, imageName, extension, imageBytes)
+        assertTrue(uploadResult is Either.Left)
+        assertEquals(ProjectError.ProjectNotFound, (uploadResult as Either.Left).value)
     }
 
     @Test
-    fun `upload image with invalid project id`() {
-        // Arrange
-        val invalidProjectId = UUID.randomUUID()
-        val imageName = "image"
-        val extension = "png"
+    fun `uploadImage fails if user is a viewer`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
+
+        trxManager.run {
+            repoCollaborators.addCollaborator(project.id, secondUserId, ProjectRole.VIEWER)
+        }
+
+        val imageName = "viewer-image"
+        val extension = "jpg"
         val imageBytes = byteArrayOf(1, 2, 3)
 
-        // Act
-        val result = projectContentService.uploadImage(ownerId, invalidProjectId, imageName, extension, imageBytes)
-
-        // Assert
-        assertTrue(result is Either.Left)
-        assertTrue((result as Either.Left).value is ProjectError.ProjectNotFound)
+        val uploadResult = contentService.uploadImage(secondUserId, project.id, imageName, extension, imageBytes)
+        assertTrue(uploadResult is Either.Left)
+        assertEquals(ProjectError.ProjectNotAuthorized, (uploadResult as Either.Left).value)
     }
 
     @Test
-    fun `get image`() {
-        // Arrange
-        val project = createValidProject()
-        val imageName = "image"
-        val extension = "png"
-        val imageBytes = byteArrayOf(1, 2, 3)
-        projectContentService.uploadImage(ownerId, project.id, imageName, extension, imageBytes)
+    fun `deleteImage deletes existing image`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
 
-        // Act
-        val result = projectContentService.getImage(ownerId, project.id, imageName, extension)
+        val imageName = "to-delete"
+        val extension = "jpg"
+        val imageBytes = byteArrayOf(7, 8, 9)
 
-        // Assert
-        assertTrue(result is Either.Right)
-        assertTrue((result as Either.Right).value.contentEquals(imageBytes))
-    }
+        val uploadResult = contentService.uploadImage(firstUserId, project.id, imageName, extension, imageBytes)
+        assertIs<Either.Right<Unit>>(uploadResult)
 
+        val deleteResult = contentService.deleteImage(firstUserId, project.id, imageName, extension)
+        assertIs<Either.Right<Unit>>(deleteResult)
 
-    @Test
-    fun `get image with invalid project id`() {
-        // Arrange
-        val invalidProjectId = UUID.randomUUID()
-        val imageName = "image"
-        val extension = "png"
-
-        // Act
-        val result = projectContentService.getImage(ownerId, invalidProjectId, imageName, extension)
-
-        // Assert
-        assertTrue(result is Either.Left)
-        assertTrue((result as Either.Left).value is ProjectError.ImageNotFound)
+        val getResult = contentService.getImage(firstUserId, project.id, imageName, extension)
+        assertTrue(getResult is Either.Left)
+        assertEquals(ProjectError.ImageNotFound, (getResult as Either.Left).value)
     }
 
     @Test
-    fun `delete image`() {
-        // Arrange
-        val project = createValidProject()
-        val imageName = "image"
+    fun `deleteImage fails for unauthorized user`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
+
+        val imageName = "not-allowed"
         val extension = "png"
-        val imageBytes = byteArrayOf(1, 2, 3)
-        projectContentService.uploadImage(ownerId, project.id, imageName, extension, imageBytes)
+        val imageBytes = byteArrayOf(10, 11, 12)
 
-        // Act
-        val result = projectContentService.deleteImage(ownerId, project.id, imageName, extension)
-        val image = projectContentService.getImage(ownerId, project.id, imageName, extension)
+        val upload = contentService.uploadImage(firstUserId, project.id, imageName, extension, imageBytes)
+        assertIs<Either.Right<Unit>>(upload)
 
-        // Assert
-        assertTrue(result is Either.Right)
-        assertTrue((image as Either.Left).value is ProjectError.ImageNotFound)
+        val deleteResult = contentService.deleteImage(secondUserId, project.id, imageName, extension)
+        assertTrue(deleteResult is Either.Left)
+        assertEquals(ProjectError.ProjectNotAuthorized, (deleteResult as Either.Left).value)
     }
 
     @Test
-    fun `delete image with invalid project id`() {
-        // Arrange
-        val invalidProjectId = UUID.randomUUID()
-        val imageName = "image"
+    fun `getImage fails for unauthorized user`() {
+        val project = projectInfoService.createProject(
+            projectName, projectDescription, firstUserId, Visibility.PRIVATE
+        ).let { (it as Either.Right).value }
+
+        val imageName = "not-allowed"
         val extension = "png"
+        val imageBytes = byteArrayOf(10, 11, 12)
 
-        // Act
-        val result = projectContentService.deleteImage(ownerId, invalidProjectId, imageName, extension)
+        contentService.uploadImage(firstUserId, project.id, imageName, extension, imageBytes)
 
-        // Assert
-        assertTrue(result is Either.Left)
-        assertTrue((result as Either.Left).value is ProjectError.ImageNotFound)
-    }*/
-
+        val getResult = contentService.getImage(secondUserId, project.id, imageName, extension)
+        assertTrue(getResult is Either.Left)
+        assertEquals(ProjectError.ProjectNotAuthorized, (getResult as Either.Left).value)
+    }
 }

@@ -1,213 +1,219 @@
 package pt.isel.markdown2slides
 
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import pt.isel.markdown2slides.file.RepositoryProjectContent
-import pt.isel.markdown2slides.data.mem.RepositoryProjectInfoInMem
-import pt.isel.markdown2slides.data.mem.TransactionManagerInMem
-import java.io.File
-import java.nio.file.Files
 import java.util.*
 
-class ProjectInfoServiceTests {
-/*
-    private lateinit var trxManager: TransactionManagerInMem
-    private lateinit var repoProjectInfo: RepositoryProjectInfoInMem
-    private lateinit var tempDir: String
-    private lateinit var repoProjectContent: RepositoryProjectContent
+class ProjectInfoServiceTests : ServiceTestsBase() {
+
     private lateinit var projectInfoService: ProjectInfoService
 
-    private val testDataDir = "testData"
-    private val ownerId = UUID.fromString("00000000-0000-0000-0000-000000000000")
 
     @BeforeEach
-    fun setup() {
-        trxManager = TransactionManagerInMem()
-        repoProjectInfo = RepositoryProjectInfoInMem()
-        tempDir = Files.createTempDirectory(testDataDir).toString()
-        repoProjectContent = RepositoryProjectContentFileSystem(baseDir = tempDir)
+    fun setupService() {
         projectInfoService = ProjectInfoService(trxManager, repoProjectContent)
-    }
-
-    @AfterEach
-    fun cleanup() {
-        File(tempDir).deleteRecursively()
+        addUser(firstUserId, firstUserName, firstUserEmail)
     }
 
     @Test
-    fun `create project`() {
-        // Arrange
-        val name = "name"
-        val description = "description"
-        val ownerId = UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val visibility = Visibility.PUBLIC
+    fun `create project succeeds`() {
+        val name = projectName
+        val description = projectDescription
+        val visibility = projectVisibility
 
-        // Act
-        val result = projectInfoService.createProject(name, description, ownerId, visibility)
+        val result = projectInfoService.createProject(name, description, firstUserId, visibility)
 
-        // Assert
         assertTrue(result is Either.Right)
         val project = (result as Either.Right).value
         assertEquals(name, project.name)
         assertEquals(description, project.description)
-        assertEquals(ownerId, project.ownerId)
+        assertEquals(firstUserId, project.ownerId)
         assertEquals(visibility, project.visibility)
     }
 
     @Test
-    fun `delete project`() {
-        // Arrange
-        val project = projectInfoService.createProject("name", "description", ownerId, Visibility.PUBLIC)
+    fun `createProject should add owner as ADMIN collaborator`() {
+        val name = projectName
+        val description = projectDescription
+        val visibility = projectVisibility
 
-        // Act
-        val result = projectInfoService.deleteProject(ownerId, (project as Either.Right).value.id)
+        val result = projectInfoService.createProject(name, description, firstUserId, visibility)
 
-        // Assert
         assertTrue(result is Either.Right)
+        val project = (result as Either.Right).value
+
+        val collaborators = trxManager.run {
+            repoCollaborators.getCollaborators(project.id)
+        }
+
+        assertEquals(1, collaborators.size)
+        val collaborator = collaborators.first()
+        assertEquals(firstUserId, collaborator.user.id)
+        assertEquals(ProjectRole.ADMIN, collaborator.role)
+        assertEquals(project.id, collaborator.project_id)
     }
 
     @Test
-    fun `delete project not found`() {
-        // Arrange
-        val projectId = UUID.randomUUID()
+    fun `deleteProject should succeed`() {
+        val project = projectInfoService.createProject(
+            "ToDelete",
+            "desc",
+            firstUserId,
+            Visibility.PRIVATE
+        ).let { result ->
+            assertTrue(result is Either.Right)
+            (result as Either.Right).value
+        }
 
-        // Act
-        val result = projectInfoService.deleteProject(ownerId, projectId)
 
-        // Assert
+        val result = projectInfoService.deleteProject(firstUserId, project.id)
+
+        assertTrue(result is Either.Right)
+        val deleted = trxManager.run { repoProjectInfo.findById(project.id) }
+        assertNull(deleted)
+    }
+
+    @Test
+    fun `deleteProject should fail if project not found`() {
+        val result = projectInfoService.deleteProject(firstUserId, UUID.randomUUID())
+
         assertTrue(result is Either.Left)
         assertEquals(ProjectError.ProjectNotFound, (result as Either.Left).value)
     }
 
     @Test
-    fun `delete project not authorized`() {
-        // Arrange
-        val project = projectInfoService.createProject("name", "description", ownerId, Visibility.PUBLIC)
+    fun `deleteProject should fail if owner mismatch`() {
+        addUser(UUID.fromString("00000000-0000-0000-0000-000000000001"), "Test User 2", "testuser2@email.com")
+        val project = projectInfoService.createProject(
+            "Another",
+            "desc",
+            UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            Visibility.PRIVATE
+        ).let { result ->
+            assertTrue(result is Either.Right)
+            (result as Either.Right).value
+        }
 
-        // Act
-        val result = projectInfoService.deleteProject(UUID.randomUUID(), (project as Either.Right).value.id)
+        val result = projectInfoService.deleteProject(firstUserId, project.id)
 
-        // Assert
         assertTrue(result is Either.Left)
         assertEquals(ProjectError.ProjectNotAuthorized, (result as Either.Left).value)
     }
 
     @Test
-    fun `get empty personal projects`() {
-        // Arrange
-        val ownerId = UUID.randomUUID()
+    fun `getPersonalProjects returns only the owner's projects`() {
+        repeat(3) {
+            projectInfoService.createProject("p$it", "desc", firstUserId, Visibility.PUBLIC)
+        }
+        val otherId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+        addUser(otherId, "Other", "other@email.com")
+        projectInfoService.createProject("Other", "desc", otherId, Visibility.PRIVATE)
 
-        // Act
-        val result = projectInfoService.getPersonalProjects(ownerId)
 
-        // Assert
+        val result = projectInfoService.getPersonalProjects(firstUserId)
+
         assertTrue(result is Either.Right)
         val projects = (result as Either.Right).value
-        assertTrue(projects.isEmpty())
+        assertEquals(3, projects.size)
+        assertTrue(projects.all { it.ownerId == firstUserId })
     }
 
-
-
     @Test
-    fun `get some personal projects`() {
-        // Arrange
-        val ownerId = UUID.randomUUID()
-        val project1 = projectInfoService.createProject("name1", "description1", ownerId, Visibility.PUBLIC)
-        val project2 = projectInfoService.createProject("name2", "description2", ownerId, Visibility.PRIVATE)
+    fun `getProjectDetails returns the project for the correct owner`() {
+        val project = projectInfoService.createProject("Detail", "desc", firstUserId, Visibility.PRIVATE).let { result ->
+            assertTrue(result is Either.Right)
+            (result as Either.Right).value
+        }
 
-        // Act
-        val result = projectInfoService.getPersonalProjects(ownerId)
+        val result = projectInfoService.getProjectDetails(firstUserId, project.id)
 
-        // Assert
         assertTrue(result is Either.Right)
-        val projects = (result as Either.Right).value
-        assertEquals(2, projects.size)
-        assertEquals((project1 as Either.Right).value, projects[0])
-        assertEquals((project2 as Either.Right).value, projects[1])
+        assertEquals(project.id, (result as Either.Right).value.id)
     }
 
     @Test
-    fun `get project details`() {
-        // Arrange
-        val project = createValidProject()
+    fun `getProjectDetails fails if project not found`() {
+        val result = projectInfoService.getProjectDetails(firstUserId, UUID.randomUUID())
 
-        // Act
-        val result = projectInfoService.getProjectDetails(ownerId, project.id)
-
-        // Assert
-        assertTrue(result is Either.Right)
-        assertEquals(project, (result as Either.Right).value)
-    }
-
-    @Test
-    fun `get project details not found`() {
-        // Arrange
-        val projectId = UUID.randomUUID()
-
-        // Act
-        val result = projectInfoService.getProjectDetails(ownerId, projectId)
-
-        // Assert
         assertTrue(result is Either.Left)
         assertEquals(ProjectError.ProjectNotFound, (result as Either.Left).value)
     }
 
     @Test
-    fun `edit project details`() {
-        // Arrange
-        val project = createValidProject()
+    fun `getProjectDetails fails if user is not owner`() {
+        val userId = UUID.randomUUID()
+        addUser(userId, "Other", "other@email.com")
+        val project = projectInfoService.createProject("NotMine", "desc", userId, Visibility.PRIVATE).let { result ->
+            assertTrue(result is Either.Right)
+            (result as Either.Right).value
+        }
 
-        val name = "new name"
-        val description = "new description"
-        val visibility = Visibility.PRIVATE
 
-        // Act
-        val result = projectInfoService.editProjectDetails(ownerId, project.id, name, description, visibility)
+        val result = projectInfoService.getProjectDetails(firstUserId, project.id)
 
-        // Assert
-        assertTrue(result is Either.Right)
-        val updated = (result as Either.Right).value
-        assertEquals(name, updated.name)
-        assertEquals(description, updated.description)
-        assertEquals(visibility, updated.visibility)
+        assertTrue(result is Either.Left)
+        assertEquals(ProjectError.ProjectNotAuthorized, (result as Either.Left).value)
     }
 
     @Test
-    fun `edit project details with null values`() {
-        // Arrange
-        val project = createValidProject()
+    fun `editProjectDetails updates name, description and visibility`() {
+        val original = projectInfoService.createProject("OldName", "OldDesc", firstUserId, Visibility.PRIVATE).let { result ->
+            assertTrue(result is Either.Right)
+            (result as Either.Right).value
+        }
 
-        // Act
-        val result = projectInfoService.editProjectDetails(ownerId, project.id, null, null, null)
+        val result = projectInfoService.editProjectDetails(
+            firstUserId,
+            original.id,
+            name = "NewName",
+            description = "NewDesc",
+            visibility = Visibility.PUBLIC
+        )
 
-        // Assert
         assertTrue(result is Either.Right)
         val updated = (result as Either.Right).value
-        assertEquals(project.name, updated.name)
-        assertEquals(project.description, updated.description)
-        assertEquals(project.visibility, updated.visibility)
+        assertEquals("NewName", updated.name)
+        assertEquals("NewDesc", updated.description)
+        assertEquals(Visibility.PUBLIC, updated.visibility)
+        assertTrue(updated.updatedAt.isAfter(original.updatedAt))
     }
 
     @Test
-    fun `edit project details not found`() {
-        // Arrange
-        val projectId = UUID.randomUUID()
+    fun `editProjectDetails fails if project does not exist`() {
+        val result = projectInfoService.editProjectDetails(
+            firstUserId,
+            UUID.randomUUID(),
+            name = "NewName",
+            description = "NewDesc",
+            visibility = Visibility.PUBLIC
+        )
 
-        // Act
-        val result = projectInfoService.editProjectDetails(ownerId, projectId, "name", "description", Visibility.PUBLIC)
-
-        // Assert
         assertTrue(result is Either.Left)
         assertEquals(ProjectError.ProjectNotFound, (result as Either.Left).value)
     }
 
+    @Test
+    fun `editProjectDetails fails if not owner`() {
+        val otherUserId = UUID.randomUUID()
+        trxManager.run {
+            repoUser.save(User(otherUserId, "Other", "other@email.com"))
+        }
 
-    private fun createValidProject(): ProjectInfo {
-        val result = projectInfoService.createProject("name", "description", ownerId, Visibility.PUBLIC)
-        return if(result is Either.Right )result.value else fail("Project creation failed")
+        val project = trxManager.run {
+            repoProjectInfo.createProject("Title", "Desc", otherUserId, Visibility.PRIVATE)
+        }
+
+        val result = projectInfoService.editProjectDetails(
+            firstUserId,
+            project.id,
+            name = "Hacked",
+            description = null,
+            visibility = null
+        )
+
+        assertTrue(result is Either.Left)
+        assertEquals(ProjectError.ProjectNotAuthorized, (result as Either.Left).value)
     }
 
-*/
 }

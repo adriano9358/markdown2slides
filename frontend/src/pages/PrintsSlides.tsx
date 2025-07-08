@@ -1,25 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import Reveal from "reveal.js";
 import "reveal.js/dist/reveal.css";
-import "reveal.js/dist/theme/white.css";
 import { useParams } from "react-router-dom";
 import { getProjectContent } from "../http/projectContentApi";
 import { convertProject } from "../http/conversionApi";
 
 export const PrintSlides = () => {
-    const { projectId } = useParams<{ projectId: string }>();
+    const { projectId, theme } = useParams<{ projectId: string, theme: string }>();
     const [slideContent, setSlideContent] = useState("");
     const deckRef = useRef<Reveal.Api | null>(null);
     
-
     const fetchContent = async () => {
         try {
             const md = await getProjectContent(projectId);
-            const html = await convertProject(true, "Content:" + md);
+            const html = await convertProject(true, theme, "Content:" + md);
             setSlideContent(html);
         } catch (err) {
             console.error("Failed to load slides", err);
         }
+    };
+
+    const onThemeLoad = () => {
+        const deck = new Reveal();
+        deck.initialize(
+            { embedded: false, hash: false, history: false, controls: false, slideNumber: false, progress: false, plugins: [], view: "scroll", transition: "none"}
+        ).then(() => {
+            //alert("To export as PDF, open the in-browser print menu with (CTRL+P)");
+            deckRef.current = deck;
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        });
     };
 
     useEffect(() => {
@@ -28,21 +39,22 @@ export const PrintSlides = () => {
 
     useEffect(() => {
         if (slideContent) {
-            const deck = new Reveal();
-            deck.initialize(
-                { embedded: false, hash: false, history: false, controls: false, slideNumber: false, progress: false, plugins: [], view: "scroll", transition: "none"}
-            ).then(() => {
-                deckRef.current = deck;
-                setTimeout(() => {
-                    window.print();
-                }, 300);
-            });
+            const themeLink = document.querySelector('link#theme') as HTMLLinkElement;
 
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = "https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/print/pdf.css";
-            link.id = "pdf-print-style";
-            document.head.appendChild(link);
+            if (themeLink && themeLink.sheet) {
+                onThemeLoad();
+            } else if (themeLink) {
+                themeLink.addEventListener("load", onThemeLoad);
+            } else {
+                console.warn("No theme link found, using default theme.");
+                onThemeLoad();
+            }
+
+            return () => {
+                if (themeLink) {
+                    themeLink.removeEventListener("load", onThemeLoad);
+                }
+            };
         }
     }, [slideContent]);
 

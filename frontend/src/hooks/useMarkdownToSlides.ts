@@ -14,7 +14,7 @@ export const useMarkdownToSlides = (ref: React.MutableRefObject<() => string>, p
     try {
       setLoading(true);
       const contentToConvert = ref.current()
-      const html = await convertProject(false, "Content:" + contentToConvert);
+      const html = await convertProject(false, "white", "Content:" + contentToConvert);
       setSlideContent(html);
     } catch (e) {
       console.error("Markdown conversion error:", e);

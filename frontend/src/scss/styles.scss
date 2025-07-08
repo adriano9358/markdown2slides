@@ -11,10 +11,10 @@
 }
 
 /* Ensure other pages are not affected */
-body {
+/*body {
     background-color: white !important;
 }
-
+*/
 .gutter {
     background-color: $gray-300; // Bootstrap variable for light gray
     cursor: col-resize;

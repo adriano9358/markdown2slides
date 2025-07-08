@@ -51,16 +51,33 @@ class ProjectContentService(
     }
 
     fun uploadImage(
-        ownerId: UUID,
+        userId: UUID,
         projectId: UUID,
         imageName: String,
         extension: String,
         imageBytes: ByteArray
     ): Either<ProjectError, Unit> = handleErrors {
-        val projectExists = repoProjectContent.checkProjectExists(ownerId, projectId)
-        if(!projectExists) return failure(ProjectError.ProjectNotFound)
-        repoProjectContent.saveImage(ownerId, projectId, imageName, extension, imageBytes)
-        return success(Unit)
+        val projectResult = trxManager.run {
+            val project = repoProjectInfo.findById(projectId)
+                ?: return@run failure(ProjectError.ProjectNotFound)
+            val collaborators = repoCollaborators.getCollaborators(projectId)
+            if(collaborators.none { it.user.id == userId }) {
+                return@run failure(ProjectError.ProjectNotAuthorized)
+            }
+            if(collaborators.any{ it.user.id == userId && it.role == ProjectRole.VIEWER})
+                return@run failure(ProjectError.ProjectNotAuthorized)
+
+            success(project)
+        }
+        when(projectResult) {
+            is Failure -> return projectResult
+            is Success -> {
+                val projectExists = repoProjectContent.checkProjectExists(projectResult.value.ownerId , projectId)
+                if(!projectExists) return failure(ProjectError.ProjectNotFound)
+                repoProjectContent.saveImage(projectResult.value.ownerId, projectId, imageName, extension, imageBytes)
+                return success(Unit)
+            }
+        }
     }
 
     fun deleteImage(
@@ -69,20 +86,51 @@ class ProjectContentService(
         imageName: String,
         extension: String
     ): Either<ProjectError, Unit> = handleErrors {
-        repoProjectContent.getImage(ownerId, projectId, imageName, extension) ?: return failure(ProjectError.ImageNotFound)
+        val projectResult = trxManager.run {
+            val project = repoProjectInfo.findById(projectId)
+                ?: return@run failure(ProjectError.ProjectNotFound)
+            if(project.ownerId != ownerId) {
+                    return@run failure(ProjectError.ProjectNotAuthorized)
+            }
+            success(project)
+        }.let { projectResult ->
+            when(projectResult) {
+                is Failure -> return projectResult
+                is Success -> projectResult.value
+            }
+        }
+        repoProjectContent.getImage(projectResult.ownerId, projectId, imageName, extension) ?: return failure(ProjectError.ImageNotFound)
         val deleted = repoProjectContent.deleteImage(ownerId, projectId, imageName, extension)
         return if (deleted)  success(Unit)
         else failure(ProjectError.ImageDeletionError)
     }
 
     fun getImage(
-        ownerId: UUID,
+        userId: UUID,
         projectId: UUID,
         imageName: String,
         extension: String
     ): Either<ProjectError, ByteArray> = handleErrors {
-        val image = repoProjectContent.getImage(ownerId, projectId, imageName, extension) ?: return failure(ProjectError.ImageNotFound)
-        return success(image)
+
+        val projectResult = trxManager.run {
+            val project = repoProjectInfo.findById(projectId)
+                ?: return@run failure(ProjectError.ProjectNotFound)
+            val collaborators = repoCollaborators.getCollaborators(projectId)
+            if(collaborators.none { it.user.id == userId }) {
+                return@run failure(ProjectError.ProjectNotAuthorized)
+            }
+            success(project)
+        }
+        when(projectResult) {
+            is Failure -> return projectResult
+            is Success -> {
+                val projectExists = repoProjectContent.checkProjectExists(projectResult.value.ownerId , projectId)
+                if(!projectExists) return failure(ProjectError.ProjectNotFound)
+                val image = repoProjectContent.getImage(projectResult.value.ownerId, projectId, imageName, extension) ?: return failure(ProjectError.ImageNotFound)
+                return success(image)
+            }
+        }
+
     }
 
 }

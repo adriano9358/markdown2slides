@@ -27,7 +27,7 @@ export const SlideEditorToolbar = ({
           <button
             className="btn btn-sm btn-outline-secondary"
             onClick={() =>
-              window.open(`/projects/${projectId}/print?print-pdf`, "_blank")
+              window.open(`/projects/${projectId}/print/${theme}?print-pdf`, "_blank")
             }
           >
             Export / Print
