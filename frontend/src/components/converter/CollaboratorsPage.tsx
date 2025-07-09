@@ -5,7 +5,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Collaborator } from "../../domain/Collaborator";
 import { Invitation } from "../../domain/Invitation";
 import { SendInvitationData } from "../../domain/SendInvitationData";
-import { getCollaborators } from "../../http/collaboratorsApi";
+import { deleteCollaborator, getCollaborators } from "../../http/collaboratorsApi";
 import { getProjectInvitations, sendNewInvitation } from "../../http/invitationsApi";
 
 
@@ -54,14 +54,19 @@ export default function CollaboratorsPage() {
   };
 
   const removeCollaborator = async (userId: string) => {
-    // TODO: call backend endpoint to remove collaborator
-    alert(`Removing collaborator with user id: ${userId}`);
+    deleteCollaborator(projectId, userId)
+      .then(() => {
+        setCollaborators((prev) => prev.filter((c) => c.user.id !== userId));
+      }).catch((err) => {
+        console.error("Failed to remove collaborator", err);
+        alert("Failed to remove collaborator. Please try again later.");
+      });
   };
 
-  const changeRole = async (userId: string, newRole: string) => {
+  /*const changeRole = async (userId: string, newRole: string) => {
     // TODO: call backend endpoint to update role
     alert(`Changing role for user ${userId} to ${newRole}`);
-  };
+  };*/
 
   return (
     <div className="container py-4" >
@@ -94,7 +99,7 @@ export default function CollaboratorsPage() {
                 {isOwner && c.role !== "ADMIN" ? (
                     <td>
                     <div className="d-flex gap-2">
-                        <select
+                        {/*<select
                         className="form-select form-select-sm w-auto"
                         value={c.role}
                         onChange={(e) => changeRole(c.user.id, e.target.value)}
@@ -102,7 +107,7 @@ export default function CollaboratorsPage() {
                         <option value="OWNER">Owner</option>
                         <option value="EDITOR">Editor</option>
                         <option value="VIEWER">Viewer</option>
-                        </select>
+                </select>*/}
                         <button
                         className="btn btn-sm btn-danger"
                         onClick={() => removeCollaborator(c.user.id)}

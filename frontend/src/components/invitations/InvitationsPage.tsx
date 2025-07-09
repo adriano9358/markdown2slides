@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { getUserInvitations, respondToInvitation } from "../../http/invitationsApi";
 import { UserInvitation } from "../../domain/UserInvitation";
+import { useInvitationContext } from "../../providers/InviteProvider";
 
 export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { triggerRefresh } = useInvitationContext();
 
   useEffect(() => {
     fetchInvitations();
@@ -27,8 +29,9 @@ export default function InvitationsPage() {
 
   const respondInvitation = async (invitationId: string, accept: boolean) => {
     try {
-      respondToInvitation(invitationId, { status: accept ? "ACCEPTED" : "DECLINED" });
+      await respondToInvitation(invitationId, { status: accept ? "ACCEPTED" : "DECLINED" });
       fetchInvitations(); 
+      triggerRefresh();
     } catch (err) {
       console.error("Error responding to invitation:" + err);
     }

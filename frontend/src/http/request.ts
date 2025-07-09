@@ -35,7 +35,7 @@ export async function request<T>(
     throw new Error(error.message || "API Error");
   }
 
-  if (response.status === 204) {
+  if (response.status === 204 || response.headers.get("Content-Length") === "0") {
     return null as any;
   }
 

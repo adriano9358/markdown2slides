@@ -2,9 +2,11 @@ import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../providers/AuthProvider";
 import { getUserInvitations } from "../../http/invitationsApi";
+import { useInvitationContext } from "../../providers/InviteProvider";
 
 export const InvitationBell = () => {
   const { user } = useContext(AuthContext);
+  const { refreshFlag } = useInvitationContext();
   const [hasInvitations, setHasInvitations] = useState(false);
 
   const fetchInvitations = async () => {
@@ -21,7 +23,7 @@ export const InvitationBell = () => {
 
   useEffect(() => {
     fetchInvitations();
-  }, [user]);
+  }, [user, refreshFlag]);
 
   return (
     <Link to="/invitations" className="text-white position-relative">
