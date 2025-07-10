@@ -26,7 +26,7 @@ class AuthorityService(private val projectContentService: ProjectContentService)
         var updatedSinceLastPersistence: Boolean = false,
         val pending: MutableList<CompletableDeferred<List<CollabUpdate>>> = mutableListOf(),
         val cursors: MutableMap<String, CursorInfo> = mutableMapOf(),
-        var lastAccessed: Long = System.currentTimeMillis() // Add this line
+        var lastAccessed: Long = System.currentTimeMillis()
     )
 
     private val projects = ConcurrentHashMap<String, ProjectState>()
@@ -59,18 +59,43 @@ class AuthorityService(private val projectContentService: ProjectContentService)
         }
     }
 
-    fun getOrCreateProject(projectId: UUID, userId: UUID): ProjectState {
-        return projects.computeIfAbsent(projectId.toString()) {
-            val content = projectContentService.getProjectContent(userId, projectId)
-            when(content) {
-                is Success -> ProjectState(doc = content.value.content, ownerId = content.value.ownerId)
-                is Failure -> throw IllegalStateException("Project not found or user not authorized")
+    fun getOrCreateProject(projectId: UUID, userId: UUID): Either<ProjectError, ProjectState> {
+        return when (val result = projectContentService.getProjectContent(userId, projectId)) {
+            is Success -> {
+                val state = projects.computeIfAbsent(projectId.toString()) {
+                    ProjectState(doc = result.value.content, ownerId = result.value.ownerId)
+                }
+                success(state)
             }
+            is Failure -> result
         }
     }
 
-    suspend fun pullUpdates(projectId: UUID, userId: UUID, version: Int): List<CollabUpdate> {
-        val project = getOrCreateProject(projectId, userId)
+    suspend fun pullUpdates(projectId: UUID, userId: UUID, version: Int): Either<ProjectError, List<CollabUpdate>> {
+        return when (val result = getOrCreateProject(projectId, userId)) {
+            is Failure -> result
+            is Success -> {
+                val project = result.value
+                val deferred = synchronized(project) {
+                    if (version < project.updates.size) {
+                        return success(project.updates.subList(version, project.updates.size))
+                    } else {
+                        val d = CompletableDeferred<List<CollabUpdate>>()
+                        project.pending.add(d)
+                        d
+                    }
+                }
+
+                val updates = withTimeoutOrNull(25_000) {
+                    deferred.await()
+                } ?: synchronized(project) {
+                    project.pending.remove(deferred)
+                    emptyList()
+                }
+                success(updates)
+            }
+        }
+        /*val project = getOrCreateProject(projectId, userId)
         return synchronized(project) {
             if (version < project.updates.size) {
                 return project.updates.subList(version, project.updates.size)
@@ -87,18 +112,35 @@ class AuthorityService(private val projectContentService: ProjectContentService)
                 // Remove from pending if it timed out and wasn't completed
                 project.pending.remove(deferred)
                 emptyList<CollabUpdate>()
-            } }
+            } }*/
     }
 
+
+    fun getDocument(
+        projectId: UUID,
+        userId: UUID
+    ): Either<ProjectError, InitResponse> {
+        return when (val result = getOrCreateProject(projectId, userId)) {
+            is Failure -> result
+            is Success -> success(
+                InitResponse(
+                    version = result.value.updates.size,
+                    doc = result.value.doc
+                )
+            )
+        }
+    }
+
+    /*
     fun getDocument(projectId: UUID, userId: UUID): InitResponse {
         val project = getOrCreateProject(projectId, userId)
         return InitResponse(
             version = project.updates.size,
             doc = project.doc
         )
-    }
+    }*/
 
-    fun pushUpdates(projectId: UUID, userId: UUID, version: Int, incoming: List<CollabUpdate>): Boolean {
+    /*fun pushUpdates(projectId: UUID, userId: UUID, version: Int, incoming: List<CollabUpdate>): Boolean {
         if(incoming.isEmpty()) {
             logger.warn("Received empty update list for project $projectId from user $userId")
             return false
@@ -159,9 +201,69 @@ class AuthorityService(private val projectContentService: ProjectContentService)
             }
         }
         return true
+    }*/
+
+    fun pushUpdates(
+        projectId: UUID,
+        userId: UUID,
+        version: Int,
+        incoming: List<CollabUpdate>
+    ): Either<ProjectError, Unit> {
+        if (incoming.isEmpty()) {
+            logger.warn("Empty update list for project $projectId from user $userId")
+            return failure(ProjectError.InvalidUpdates)
+        }
+
+        return when (val result = getOrCreateProject(projectId, userId)) {
+            is Failure -> result
+            is Success -> {
+                val project = result.value
+                synchronized(project) {
+                    if (version != project.updates.size) {
+                        logger.warn("Version mismatch for $projectId: expected ${project.updates.size}, got $version")
+                        return failure(ProjectError.VersionMismatch)
+                    }
+
+                    val rebased = incoming
+
+                    project.cursors[userId.toString()] = rebased.first().cursor
+                    project.updates.addAll(rebased)
+
+                    for (update in rebased) {
+                        var from = 0
+                        for (change in update.changes) {
+                            when (change) {
+                                is Retain -> from += change.length
+                                is Delete -> {
+                                    project.doc = project.doc.replaceRange(from, from + change.length, "")
+                                    from += change.length
+                                }
+                                is Replace -> {
+                                    project.doc = project.doc.replaceRange(
+                                        from,
+                                        from + change.length,
+                                        change.insert.joinToString("\n")
+                                    )
+                                }
+                            }
+                        }
+                        project.updatedSinceLastPersistence = true
+                    }
+
+                    // Notify pending
+                    val iters = project.pending.toList()
+                    project.pending.clear()
+                    for (pending in iters) {
+                        pending.complete(rebased)
+                    }
+                }
+
+                success(Unit)
+            }
+        }
     }
 
-    fun updateCursor(projectId: UUID, userId: UUID, cursorInfo: CursorInfo): List<OtherCursor> {
+    /*fun updateCursor(projectId: UUID, userId: UUID, cursorInfo: CursorInfo): List<OtherCursor> {
         val project = getOrCreateProject(projectId, userId)
         synchronized(project) {
             project.lastAccessed = System.currentTimeMillis()
@@ -169,6 +271,27 @@ class AuthorityService(private val projectContentService: ProjectContentService)
             return project.cursors
                 .filterKeys { it != userId.toString() }
                 .map { OtherCursor(it.key, it.value) }
+        }
+    }*/
+
+    fun updateCursor(
+        projectId: UUID,
+        userId: UUID,
+        cursorInfo: CursorInfo
+    ): Either<ProjectError, List<OtherCursor>> {
+        return when (val result = getOrCreateProject(projectId, userId)) {
+            is Failure -> result
+            is Success -> {
+                val project = result.value
+                synchronized(project) {
+                    project.lastAccessed = System.currentTimeMillis()
+                    project.cursors[userId.toString()] = cursorInfo
+                    val others = project.cursors
+                        .filterKeys { it != userId.toString() }
+                        .map { OtherCursor(it.key, it.value) }
+                    success(others)
+                }
+            }
         }
     }
 

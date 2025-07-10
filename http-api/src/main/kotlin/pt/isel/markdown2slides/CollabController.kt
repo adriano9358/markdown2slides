@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
 import pt.isel.markdown2slides.model.PushRequestBody
 import pt.isel.markdown2slides.utils.CursorInfo
+import pt.isel.markdown2slides.utils.toProblem
 import java.util.*
 
 
@@ -22,8 +23,11 @@ class CollabController(val authorityService: AuthorityService) {
         logger.info("Getting initial document for project $projectId")
         val userId = principal.retrieveId() ?:
             return ResponseEntity.badRequest().body("Invalid UUID format for userId")
-
-        return ResponseEntity.ok(authorityService.getDocument(projectId, userId))
+        val result = authorityService.getDocument(projectId, userId)
+        return when (result) {
+            is Success -> ResponseEntity.ok(result.value)
+            is Failure -> result.value.toProblem().response()
+        }
     }
 
     @GetMapping("/{projectId}/updates/{version}")
@@ -32,7 +36,10 @@ class CollabController(val authorityService: AuthorityService) {
         val userId = principal.retrieveId() ?:
             return ResponseEntity.badRequest().body("Invalid UUID format for userId")
         val updates = authorityService.pullUpdates(projectId, userId, version)
-        return ResponseEntity.ok(updates)
+        return when (updates) {
+            is Success -> ResponseEntity.ok(updates.value)
+            is Failure -> updates.value.toProblem().response()
+        }
     }
 
     @PostMapping("/{projectId}/updates/{version}")
@@ -41,7 +48,10 @@ class CollabController(val authorityService: AuthorityService) {
         val userId = principal.retrieveId() ?:
             return ResponseEntity.badRequest().body("Invalid UUID format for userId")
         val result = authorityService.pushUpdates(projectId, userId, version, body.updates)
-        return ResponseEntity.ok(result)
+        return when (result) {
+            is Success -> ResponseEntity.ok(result.value)
+            is Failure -> result.value.toProblem().response()
+        }
     }
 
     @PutMapping("/{projectId}/cursor/{userId}")
@@ -55,7 +65,10 @@ class CollabController(val authorityService: AuthorityService) {
         val userId = principal.retrieveId() ?:
             return ResponseEntity.badRequest().body("Invalid UUID format for userId")
         val others = authorityService.updateCursor(projectId, userId, cursorInfo)
-        return ResponseEntity.ok(others)
+        return when (others) {
+            is Success -> ResponseEntity.ok(others.value)
+            is Failure -> others.value.toProblem().response()
+        }
     }
 }
 

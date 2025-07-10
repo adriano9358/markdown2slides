@@ -92,6 +92,8 @@ sealed class ProjectError {
     data object UserAlreadyInProject : ProjectError()
     data object InvalidInvitationResponse : ProjectError()
     data object UserNotInProject : ProjectError()
+    data object InvalidUpdates : ProjectError()
+    data object VersionMismatch : ProjectError()
 
     data class DatabaseError(val message: String) : ProjectError()
     data class FileSystemError(val message: String) : ProjectError()

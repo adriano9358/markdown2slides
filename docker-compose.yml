@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/md2slides?user=postgres&password=postgres
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dataNew:/app/data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: md2slides
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:

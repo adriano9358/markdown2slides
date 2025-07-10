@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.web.bind.annotation.*
-import pt.isel.markdown2slides.model.Problem
+import pt.isel.markdown2slides.utils.toProblem
 import java.util.*
 
 @RestController
@@ -23,7 +23,7 @@ class ProjectContentController(private val projectContentService: ProjectContent
         val project = projectContentService.getProjectContent(uuid,id)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value.content)
-            is Failure -> Problem.ConversionProcessFailure.response()
+            is Failure -> project.value.toProblem().response()
         }
     }
 
@@ -38,7 +38,7 @@ class ProjectContentController(private val projectContentService: ProjectContent
         val project = projectContentService.updateProjectContent(uuid, id, markdown)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response()
+            is Failure -> project.value.toProblem().response()
         }
     }
 
@@ -55,7 +55,7 @@ class ProjectContentController(private val projectContentService: ProjectContent
         val project = projectContentService.uploadImage(uuid, id, imageName, extension, imageBytes)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response()
+            is Failure -> project.value.toProblem().response()
         }
     }
 
@@ -72,7 +72,7 @@ class ProjectContentController(private val projectContentService: ProjectContent
         val project = projectContentService.getImage(uuid, id, imageName, extension)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response()
+            is Failure -> project.value.toProblem().response()
         }
     }
 
@@ -89,7 +89,7 @@ class ProjectContentController(private val projectContentService: ProjectContent
         val project = projectContentService.deleteImage(uuid, id, imageName, extension)
         return when (project) {
             is Success -> ResponseEntity.ok(project.value)
-            is Failure -> Problem.ConversionProcessFailure.response()
+            is Failure -> project.value.toProblem().response()
         }
     }
 

@@ -1,0 +1,669 @@
+openapi: 3.0.3
+info:
+  title: Markdown2Slides API
+  version: 1.0.0
+  description: |
+    API for collaborative markdown editing and slide conversion platform. 
+    Includes endpoints for managing collaborators, converting markdown to HTML slides, 
+    and real-time collaborative editing.
+
+servers:
+  - url: /api
+
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth/authorize
+          tokenUrl: /oauth/token
+          scopes: {}
+
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+      required: [type, title, status, detail]
+
+    RoleUpdateDTO:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [OWNER, EDITOR, VIEWER]
+      required: [role]
+
+    AddCollaboratorDTO:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+      required: [userId, role]
+
+    PushRequestBody:
+      type: object
+      properties:
+        updates:
+          type: array
+          items:
+            type: string # assuming update is a string; update if custom object
+      required: [updates]
+
+    CursorInfo:
+      type: object
+      properties:
+        line:
+          type: integer
+        column:
+          type: integer
+      required: [line, column]
+
+    CreateProjectDetailsDTO:
+      type: object
+      required: [ name, description, visibility ]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 500
+        visibility:
+          type: boolean
+
+    UpdateProjectDetailsDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 500
+        visibility:
+          type: boolean
+
+    InviteUserDTO:
+      type: object
+      required: [ email, role ]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/ProjectRole'
+
+    RespondInvitationDTO:
+      type: object
+      required: [ status ]
+      properties:
+        status:
+          $ref: '#/components/schemas/InvitationStatus'
+
+    ProjectRole:
+      type: string
+      enum: [ OWNER, EDITOR, VIEWER ]
+
+    InvitationStatus:
+      type: string
+      enum: [ ACCEPTED, DECLINED, PENDING ]
+
+paths:
+  /api/user:
+    get:
+      summary: Get authenticated user info
+      responses:
+        '200':
+          description: User info returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+        '401':
+          description: Unauthorized
+
+  /api/projects:
+    get:
+      summary: List personal projects
+      responses:
+        '200':
+          description: A list of user's projects
+    post:
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectDetailsDTO'
+      responses:
+        '200':
+          description: Project created
+
+  /api/projects/{id}:
+    get:
+      summary: Get project details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project details
+    put:
+      summary: Update project details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectDetailsDTO'
+      responses:
+        '200':
+          description: Project updated
+    delete:
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project deleted
+
+  /api/projects/{id}/images/{imageName}.{extension}:
+    post:
+      summary: Upload image to a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: imageName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: extension
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Image uploaded
+    get:
+      summary: Get image from project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: imageName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: extension
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image retrieved
+    delete:
+      summary: Delete image from project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: imageName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: extension
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image deleted
+
+  /api/projects/{id}/content:
+    get:
+      summary: Get project markdown content
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Markdown content
+    put:
+      summary: Update project markdown content
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Content updated
+
+  /api/projects/{projectId}/invitations:
+    post:
+      summary: Invite user to project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteUserDTO'
+      responses:
+        '200':
+          description: Invitation sent
+    get:
+      summary: Get project invitations
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of invitations
+    delete:
+      summary: Delete all invitations for project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invitations deleted
+
+  /api/invitations/{invitationId}/role:
+    put:
+      summary: Modify invitation role
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateDTO'
+      responses:
+        '200':
+          description: Role updated
+
+  /api/invitations/{invitationId}:
+    delete:
+      summary: Delete an invitation
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invitation deleted
+
+  /api/invitations/{invitationId}/respond:
+    post:
+      summary: Respond to an invitation
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RespondInvitationDTO'
+      responses:
+        '200':
+          description: Invitation responded
+
+  /api/invitations:
+    get:
+      summary: Get current user's invitations
+      responses:
+        '200':
+          description: List of user invitations
+
+  /projects/{projectId}/collaborators:
+    get:
+      summary: List collaborators of a project
+      security:
+        - oauth2: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of collaborators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object # Adjust to actual CollaboratorDTO schema
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /projects/{projectId}/role:
+    get:
+      summary: Get current user role in a project
+      security:
+        - oauth2: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleUpdateDTO'
+        '400':
+          description: Invalid userId
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /projects/{projectId}/collaborators/{userId}:
+    delete:
+      summary: Remove collaborator from a project
+      security:
+        - oauth2: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Collaborator removed successfully
+        '400':
+          description: Invalid userId
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /convert:
+    post:
+      summary: Convert markdown to HTML slides
+      parameters:
+        - name: standalone
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: theme
+          in: query
+          schema:
+            type: string
+            default: WHITE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: HTML slide content
+          content:
+            text/html:
+              schema:
+                type: string
+        '503':
+          description: Conversion failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /collab/{projectId}:
+    get:
+      summary: Get initial document for collaboration
+      security:
+        - oauth2: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Initial document content
+          content:
+            application/json:
+              schema:
+                type: object # Replace with document schema
+        '400':
+          description: Invalid userId
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /collab/{projectId}/updates/{version}:
+    get:
+      summary: Get document updates since version
+      security:
+        - oauth2: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of updates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Invalid userId
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+    post:
+      summary: Push document updates
+      security:
+        - oauth2: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushRequestBody'
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Update result
+          content:
+            application/json:
+              schema:
+                type: object # depends on result type
+        '400':
+          description: Invalid request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /collab/{projectId}/cursor/{userId}:
+    put:
+      summary: Update user's cursor position in document
+      security:
+        - oauth2: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CursorInfo'
+      responses:
+        '200':
+          description: Updated cursor info for other users
+          content:
+            application/json:
+              schema:
+                type: object # Replace with actual response schema
+        '400':
+          description: Invalid request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
