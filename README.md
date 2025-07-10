@@ -91,11 +91,3 @@ Make sure ports 8000 and 8080 are free before running.
 ❌ OAuth login not working?
 
 Double-check redirect URI in Google Console. Make sure the credentials are correct in application.yaml
-
-### 📄 License
-
-MIT (or your license of choice)
-
-### 📧 Contact
-
-Email: tiagoadriano9358@gmail.com

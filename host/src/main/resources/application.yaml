@@ -1,0 +1,26 @@
+spring:
+  profiles:
+    active: jdbi
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: REPLACE_WITH_YOUR_CLIENT_ID
+            client-secret: REPLACE_WITH_YOUR_CLIENT_SECRET
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+  session:
+    cookie:
+      name: SESSION
+      secure: true
+logging:
+  level:
+    pt.isel.markdown2slides: INFO
+server:
+  forward-headers-strategy: framework
