@@ -21,9 +21,9 @@ This application uses Google OAuth2 for authentication. To set it up, follow the
 
 3. Navigate to APIs & Services > Credentials.
 
-4. Click Create Credentials > OAuth client ID.
+4. Click Create Credentials > OAuth client ID. If prompted, configure the consent screen with basic information (application name, support email, etc.).
 
-5. Choose Web application.
+5. Create a client, choose Web application.
 
 6. Set Authorized redirect URIs to:
 
