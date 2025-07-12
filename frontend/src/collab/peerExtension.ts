@@ -4,7 +4,6 @@ import { pullUpdates, pushUpdates, syncCursors } from "./collabFunctions"
 import { setRemoteCursors } from "./cursorField"
 import { ChangeSet } from "@codemirror/state"
 
-// nick 3a427d49-0e7c-46d4-95c0-18ca6b34aa48
 const USER_ID_BOT = ""
 
 export function peerExtension(projectId: string, startVersion: number, userId : string) {
@@ -106,7 +105,7 @@ export function peerExtension(projectId: string, startVersion: number, userId : 
         }, 500)
       }
 
-      destroy() { this.done = true; if (userId == "3a427d49-0e7c-46d4-95c0-18ca6b34aa48") clearInterval(this.botInterval)}
+      destroy() { this.done = true; if (userId == USER_ID_BOT) clearInterval(this.botInterval)}
     })
     return [collab({startVersion}), plugin]
   }

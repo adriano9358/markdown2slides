@@ -1,10 +1,7 @@
 import * as React from "react"
 import { getUserInfo } from "../http/userApi";
 
-/*
- * AuthProvider component to manage authentication state.
- * Fetches user data from the backend and provides it through context.
- */
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = React.useState<AuthUser | undefined>(undefined)
     const [loading, setLoading] = React.useState(true)

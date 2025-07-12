@@ -10,7 +10,6 @@ import pt.isel.markdown2slides.model.UpdateProjectDetailsDTO
 import pt.isel.markdown2slides.utils.toProblem
 import java.util.*
 
-val defaultUUID = UUID.fromString("3a427d49-0e7c-46d4-95c0-18ca6b34aa48")
 
 @RestController
 @RequestMapping("/api/projects")

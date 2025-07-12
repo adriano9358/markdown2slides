@@ -27,14 +27,6 @@ class RepositoryProjectInfoJdbi(
         return ProjectInfo(id, name, description, ownerId, Instant.now(), Instant.now(), "white", visibility)
     }
 
-    /*override fun getPersonalProjects(ownerId: UUID): List<ProjectInfo> {
-        return handle
-            .createQuery("SELECT * FROM m2s.project_info WHERE owner_id = :ownerId")
-            .bind("ownerId", ownerId)
-            .mapTo(ProjectInfo::class.java)
-            .list()
-    }*/
-
     override fun getPersonalProjects(userId: UUID): List<ProjectInfo> {
         return handle
             .createQuery(

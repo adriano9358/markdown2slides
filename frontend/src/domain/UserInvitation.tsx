@@ -5,7 +5,7 @@ export interface UserInvitation {
   project: ProjectBasicInfo;
   email: string;
   role: string;
-  status: string; // "PENDING", "ACCEPTED", etc.
+  status: string; 
   invited_by: string | null;
   invited_at: string;
 }

@@ -21,15 +21,11 @@ private val logger: Logger = LoggerFactory.getLogger(CustomOAuth2UserService::cl
 @Component
 class CustomOAuth2UserService(
     private val trxManager: TransactionManager,
-    //private val userRepository: RepositoryUser
 ) :OAuth2UserService<OidcUserRequest, OidcUser> {
 
     init {
         logger.info("CustomOAuth2UserService initialized")
     }
-
-
-
 
     override fun loadUser(userRequest: OidcUserRequest): OidcUser {
         val delegate = OidcUserService()
@@ -39,15 +35,13 @@ class CustomOAuth2UserService(
             ?: throw IllegalArgumentException("Email not found in ID token or user info")
         val name = oidcUser.fullName ?: oidcUser.givenName ?: "Unknown"
 
-        logger.info("OIDC User email: $email")
-        logger.info("OIDC User name: $name")
         return trxManager.run {
             val user = repoUser.findByEmail(email)
             val mappedUser = if (user != null) {
-                logger.info("User found in repository: ${user.id}")
+                // logger.info("User found in repository: ${user.id}")
                 user
             } else {
-                logger.info("User not found in repository, creating new user")
+                // logger.info("User not found in repository, creating new user")
                 val newUser = User(
                     id = UUID.randomUUID(),
                     name = name,

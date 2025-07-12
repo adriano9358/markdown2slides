@@ -63,11 +63,6 @@ export default function CollaboratorsPage() {
       });
   };
 
-  /*const changeRole = async (userId: string, newRole: string) => {
-    // TODO: call backend endpoint to update role
-    alert(`Changing role for user ${userId} to ${newRole}`);
-  };*/
-
   return (
     <div className="container py-4" >
       <div className="mb-3">

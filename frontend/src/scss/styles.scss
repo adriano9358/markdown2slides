@@ -10,17 +10,12 @@
     padding: 1rem;
 }
 
-/* Ensure other pages are not affected */
-/*body {
-    background-color: white !important;
-}
-*/
+
 .gutter {
-    background-color: $gray-300; // Bootstrap variable for light gray
+    background-color: $gray-300; 
     cursor: col-resize;
     width: 8px;
   
-    // Optional: add a hover effect for better UX
     &:hover {
       background-color: $gray-400;
     }
@@ -34,11 +29,6 @@
     cursor: col-resize;
   }
   
-/*
-  * {
-    outline: 1px solid red;
-  }
-*/
 
   .slide-editor-container {
     height: 100%;
@@ -57,27 +47,7 @@
     max-height: 100%;
     overflow: auto !important;
   }*/
-/*
-  .cm-scroller {
-    flex: 1 1 auto;
-    min-height: 0 !important;
-    max-height: 100%;
-    overflow: auto !important; 
-  }
-  
-  .cm-content {
-    flex-grow: 0 !important;
-    min-height: auto !important;
-    //overflow-y: auto;
-  }
 
-
-  .cm-editor {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: 100%;
-    overflow: hidden;
-  }*/
   
 
   .editor-wrapper {
@@ -88,31 +58,3 @@
     display: flex;
   }
   
-
-
-/* Custom CSS or Tailwind classes */
-/*.codemirror-container {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 300%;
-  overflow: hidden;
-
-  .cm-editor {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: 100%;
-    overflow: hidden;
-  }
-
-  .cm-scroller {
-    flex: 1 1 auto;
-    min-height: 0 !important;
-    overflow: auto !important;
-    max-height: 100%;
-  }
-
-  .cm-content {
-    flex-grow: 0 !important;
-    min-height: auto !important;
-  }
-}*/

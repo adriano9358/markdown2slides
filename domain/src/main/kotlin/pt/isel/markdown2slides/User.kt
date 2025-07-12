@@ -6,9 +6,5 @@ data class User(
     val id: UUID,
     val name: String,
     val email: String,
-    val passwordValidation: PasswordValidationInfo? = null,
 )
 
-class PasswordValidationInfo {
-
-}

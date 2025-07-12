@@ -20,7 +20,7 @@ class AuthorityService(private val projectContentService: ProjectContentService)
     private val logger = LoggerFactory.getLogger(AuthorityService::class.java)
 
     data class ProjectState(
-        var doc: String = "Start document",
+        var doc: String,
         val ownerId: UUID,
         val updates: MutableList<CollabUpdate> = mutableListOf(),
         var updatedSinceLastPersistence: Boolean = false,
@@ -31,12 +31,11 @@ class AuthorityService(private val projectContentService: ProjectContentService)
 
     private val projects = ConcurrentHashMap<String, ProjectState>()
 
-    //private val objectMapper = jacksonObjectMapper()
 
     @Scheduled(fixedDelay = 10_000)
     fun flushAllProjectsToDisk() {
         logger.info("Flushing all projects to disk")
-        val now = System.currentTimeMillis()
+        //val now = System.currentTimeMillis()
 
         projects.forEach { (projectId, state) ->
             synchronized(state) {
@@ -95,24 +94,6 @@ class AuthorityService(private val projectContentService: ProjectContentService)
                 success(updates)
             }
         }
-        /*val project = getOrCreateProject(projectId, userId)
-        return synchronized(project) {
-            if (version < project.updates.size) {
-                return project.updates.subList(version, project.updates.size)
-            } else {
-                val deferred = CompletableDeferred<List<CollabUpdate>>()
-                project.pending.add(deferred)
-                deferred
-            }
-        }.let { deferred ->
-            // Timeout after 25 seconds if no updates arrive
-            withTimeoutOrNull(25_000) {
-                deferred.await()
-            } ?: synchronized(project) {
-                // Remove from pending if it timed out and wasn't completed
-                project.pending.remove(deferred)
-                emptyList<CollabUpdate>()
-            } }*/
     }
 
 
@@ -130,78 +111,6 @@ class AuthorityService(private val projectContentService: ProjectContentService)
             )
         }
     }
-
-    /*
-    fun getDocument(projectId: UUID, userId: UUID): InitResponse {
-        val project = getOrCreateProject(projectId, userId)
-        return InitResponse(
-            version = project.updates.size,
-            doc = project.doc
-        )
-    }*/
-
-    /*fun pushUpdates(projectId: UUID, userId: UUID, version: Int, incoming: List<CollabUpdate>): Boolean {
-        if(incoming.isEmpty()) {
-            logger.warn("Received empty update list for project $projectId from user $userId")
-            return false
-        }
-        val project = getOrCreateProject(projectId, userId)
-        logger.info("SIZE IS " + incoming.size)
-        incoming.forEach { update ->
-            logger.info("Received update from ${update.clientID}: ${update.changes}")
-        }
-
-        synchronized(project) {
-            // If outdated version, reject updates
-            if (version != project.updates.size) {
-                logger.warn("Version mismatch: expected ${project.updates.size}, got $version")
-                return false
-            }
-            val rebased =incoming
-            logger.info("Active cursors: ${project.cursors.size}:")
-            project.cursors.forEach { (clientId, cursor) ->
-                logger.info("Cursor for $clientId: from ${cursor.from}, to ${cursor.to}")
-            }
-            // Update cursors with update cursor info
-            project.cursors[userId.toString()] = rebased.first().cursor
-            project.updates.addAll(rebased)
-            for (update in rebased) {
-                if(update.getLength() != project.doc.length) {
-                    logger.warn("Update length mismatch: expected ${project.doc.length}, got ${update.getLength()}")
-                    return false
-                }
-                update.changes.forEach { change ->
-                    when(change){
-                        is Retain -> logger.info("Retaining ${change.length} characters")
-                        is Delete -> logger.info("Deleting ${change.length} characters")
-                        is Replace -> logger.info("Replacing ${change.length} characters with ${change.insert.joinToString("\n")} with length ${change.insert.joinToString("\n").length}")
-                    }
-                }
-
-                var from = 0
-                for( change in update.changes) {
-                    when (change) {
-                        is Retain -> from += change.length
-                        is Delete -> {
-                            project.doc = project.doc.replaceRange(from, from + change.length, "")
-                            from += change.length
-                        }
-                        is Replace -> {
-                            project.doc = project.doc.replaceRange(from, from + change.length, change.insert.joinToString("\n"))
-                        }
-                    }
-                }
-                project.updatedSinceLastPersistence = true
-            }
-            // Notify pending pulls
-            val iters = project.pending.toList()
-            project.pending.clear()
-            for (pending in iters) {
-                pending.complete(rebased)
-            }
-        }
-        return true
-    }*/
 
     fun pushUpdates(
         projectId: UUID,
@@ -263,16 +172,6 @@ class AuthorityService(private val projectContentService: ProjectContentService)
         }
     }
 
-    /*fun updateCursor(projectId: UUID, userId: UUID, cursorInfo: CursorInfo): List<OtherCursor> {
-        val project = getOrCreateProject(projectId, userId)
-        synchronized(project) {
-            project.lastAccessed = System.currentTimeMillis()
-            project.cursors[userId.toString()] = cursorInfo
-            return project.cursors
-                .filterKeys { it != userId.toString() }
-                .map { OtherCursor(it.key, it.value) }
-        }
-    }*/
 
     fun updateCursor(
         projectId: UUID,

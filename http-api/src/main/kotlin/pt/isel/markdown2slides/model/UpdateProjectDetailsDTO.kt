@@ -1,6 +1,5 @@
 package pt.isel.markdown2slides.model
 
-import pt.isel.markdown2slides.Visibility
 import pt.isel.markdown2slides.utils.DomainValidationException
 
 data class UpdateProjectDetailsDTO(
