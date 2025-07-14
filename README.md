@@ -4,6 +4,11 @@
 
 ## 🚀 Getting Started
 
+Requirements:
+
+- Git: https://git-scm.com/downloads
+- Docker: https://www.docker.com/products/docker-desktop/
+
 ### 1. 📦 Clone the repository
 
 ```bash
